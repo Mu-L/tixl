@@ -155,32 +155,38 @@ internal static class Icons
     public static readonly IconSource[] CustomIcons =
         {
             new(Icon.None, 0),
-            new(Icon.DopeSheetKeyframeLinearSelected, 0, new Vector2(15, 25)),
-            new(Icon.DopeSheetKeyframeLinear, 1, new Vector2(15, 25)),
-            new(Icon.LastKeyframe, 2, new Vector2(15, 25)),
-            new(Icon.FirstKeyframe, 3, new Vector2(15, 25)),
-            new(Icon.DopeSheetKeyframeSmoothSelected, 37, new Vector2(15, 25)),
-            new(Icon.DopeSheetKeyframeSmooth, 38, new Vector2(15, 25)),
+            new(Icon.DopeSheetKeyframeLinear, 0, new Vector2(9, 25)),
+            new(Icon.DopeSheetKeyframeLinearSelected, 1, new Vector2(9, 25)),
+            
+            new(Icon.ConstantKeyframe, 3, new Vector2(9, 25)),
+            new(Icon.ConstantKeyframeSelected, 4, new Vector2(9, 25)),
+            
+            new(Icon.DopeSheetKeyframeSmooth, 5, new Vector2(9, 25)),
+            new(Icon.DopeSheetKeyframeSmoothSelected, 6, new Vector2(9, 25)),
 
-            new(Icon.DopeSheetKeyframeCubicSelected, 39, new Vector2(15, 25)),
-            new(Icon.DopeSheetKeyframeCubic, 40, new Vector2(15, 25)),
-            new(Icon.DopeSheetKeyframeHorizontalSelected, 41, new Vector2(15, 25)),
-            new(Icon.DopeSheetKeyframeHorizontal, 42, new Vector2(15, 25)),
+            new(Icon.DopeSheetKeyframeCubic, 8, new Vector2(9, 25)),
+            new(Icon.DopeSheetKeyframeCubicSelected, 7, new Vector2(9, 25)),
+            
+            new(Icon.DopeSheetKeyframeHorizontal, 9, new Vector2(9, 25)),
+            new(Icon.DopeSheetKeyframeHorizontalSelected, 10, new Vector2(9, 25)),
+            
+            new(Icon.FirstKeyframe, 11, new Vector2(15, 25)),
+            new(Icon.LastKeyframe, 12, new Vector2(15, 25)),
+            
+            new(Icon.CurveKeyframe, new Vector2(13 * 15, 0), new Vector2(15, 15)),
+            new(Icon.CurveKeyframeSelected, new Vector2(13 * 15, 15), new Vector2(15, 15)),
 
-            new(Icon.KeyframeToggleOnBoth, new Vector2(43 * 15, 0), new Vector2(23, 15)),
-            new(Icon.KeyframeToggleOnLeft, new Vector2(45 * 15, 0), new Vector2(23, 15)),
-            new(Icon.KeyframeToggleOnRight, new Vector2(47 * 15, 0), new Vector2(23, 15)),
-            new(Icon.KeyframeToggleOnNone, new Vector2(49 * 15, 0), new Vector2(23, 15)),
+            
+            new(Icon.KeyframeToggleOnBoth, new Vector2(14 * 15, 0), new Vector2(23, 15)),
+            new(Icon.KeyframeToggleOnLeft, new Vector2(16 * 15, 0), new Vector2(23, 15)),
+            new(Icon.KeyframeToggleOnRight, new Vector2(18 * 15, 0), new Vector2(23, 15)),
+            new(Icon.KeyframeToggleOnNone, new Vector2(20 * 15, 0), new Vector2(23, 15)),
+            
+            new(Icon.KeyframeToggleOffBoth, new Vector2(14 * 15, 15), new Vector2(23, 15)),
+            new(Icon.KeyframeToggleOffLeft, new Vector2(16 * 15, 15), new Vector2(23, 15)),
+            new(Icon.KeyframeToggleOffRight, new Vector2(18 * 15, 15), new Vector2(23, 15)),
+            new(Icon.KeyframeToggleOffNone, new Vector2(20 * 15, 15), new Vector2(23, 15)),
 
-            new(Icon.KeyframeToggleOffBoth, new Vector2(43 * 15, 15), new Vector2(23, 15)),
-            new(Icon.KeyframeToggleOffLeft, new Vector2(45 * 15, 15), new Vector2(23, 15)),
-            new(Icon.KeyframeToggleOffRight, new Vector2(47 * 15, 15), new Vector2(23, 15)),
-            new(Icon.KeyframeToggleOffNone, new Vector2(49 * 15, 15), new Vector2(23, 15)),
-
-            new(Icon.CurveKeyframe, 15),
-            new(Icon.CurveKeyframeSelected, 16),
-            new(Icon.ConstantKeyframeSelected, 25, new Vector2(15, 25)),
-            new(Icon.ConstantKeyframe, 26, new Vector2(15, 25)),
             
             new(Icon.JumpToRangeStart, 22),
             new(Icon.JumpToPreviousKeyframe, 23),
