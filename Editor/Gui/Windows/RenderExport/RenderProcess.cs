@@ -5,9 +5,12 @@ using T3.Core.Audio;
 using T3.Core.DataTypes;
 using T3.Core.DataTypes.Vector;
 using T3.Core.Utils;
+using T3.Editor.Gui.Interaction;
+using T3.Editor.Gui.Interaction.Keyboard;
 using T3.Editor.Gui.UiHelpers;
 using T3.Editor.Gui.Windows.Output;
 using T3.Editor.Gui.Windows.RenderExport.MF;
+using T3.Editor.UiModel.ProjectHandling;
 
 namespace T3.Editor.Gui.Windows.RenderExport;
 
@@ -18,7 +21,8 @@ internal static class RenderProcess
     public static double Progress => _frameCount <= 1 ? 0.0 : (_frameIndex / (double)(_frameCount - 1));
     
     public static Type? MainOutputType { get; private set; }
-    public static Int2 MainOutputSize;
+    public static Int2 MainOutputOriginalSize;
+    public static Int2 MainOutputRenderedSize;
     public static Texture2D? MainOutputTexture;
     
     public static States State;
@@ -63,14 +67,18 @@ internal static class RenderProcess
             State = States.NoValidOutputType;
             return;
         }
-        
-        var desc = MainOutputTexture.Description;
-        MainOutputSize.Width = desc.Width;
-        MainOutputSize.Height = desc.Height;
 
+        HandleRenderShortCuts();
 
         if (!IsExporting)
         {
+            var desc = MainOutputTexture.Description;
+            MainOutputOriginalSize.Width = desc.Width;
+            MainOutputOriginalSize.Height = desc.Height;
+
+            MainOutputRenderedSize = new Int2(((int)(desc.Width * RenderSettings.Current.ResolutionFactor)).Clamp(1,16384),
+                                              ((int)(desc.Height * RenderSettings.Current.ResolutionFactor)).Clamp(1,16384));
+            
             State = States.WaitingForExport;
             return;
         }
@@ -110,6 +118,30 @@ internal static class RenderProcess
         IsToollRenderingSomething = false;
     }
     
+    private static void HandleRenderShortCuts()
+    {
+        if (MainOutputTexture == null)
+            return;
+
+        if (UserActions.RenderAnimation.Triggered())
+        {
+            if (IsExporting)
+            {
+                Cancel();
+            }
+            else
+            {
+                TryStart(RenderSettings.Current);
+            }
+        }
+
+        if (UserActions.RenderScreenshot.Triggered())
+        {
+            TryRenderScreenShot();
+        }
+    }
+
+    
     public static void TryStart(RenderSettings renderSettings)
     {
         if (IsExporting)
@@ -122,6 +154,8 @@ internal static class RenderProcess
         if (!RenderPaths.ValidateOrCreateTargetFolder(targetFilePath))
             return;
 
+        renderSettings.FrameCount = RenderTiming.ComputeFrameCount(renderSettings);
+        
         IsToollRenderingSomething = true;
         ExportStartedTimeLocal = Core.Animation.Playback.RunTimeInSecs;
 
@@ -134,7 +168,7 @@ internal static class RenderProcess
 
         if (_renderSettings.RenderMode == RenderSettings.RenderModes.Video)
         {
-            _videoWriter = new Mp4VideoWriter(targetFilePath, MainOutputSize, _renderSettings.ExportAudio)
+            _videoWriter = new Mp4VideoWriter(targetFilePath, MainOutputOriginalSize, _renderSettings.ExportAudio)
                                {
                                    Bitrate = _renderSettings.Bitrate,
                                    Framerate = (int)renderSettings.Fps
@@ -243,6 +277,22 @@ internal static class RenderProcess
 
     private static RenderSettings _renderSettings = null!;
     private static RenderTiming.Runtime _runtime;
-    
 
+    public static void TryRenderScreenShot()
+    {
+        if (MainOutputTexture == null) return;
+        
+        var project = ProjectView.Focused?.OpenedProject;
+        if (project == null) return;
+        
+        var projectFolder = project.Package.Folder;
+        var folder = Path.Combine(projectFolder, "Screenshots");            
+            
+        if (!Directory.Exists(folder))
+            Directory.CreateDirectory(folder);
+
+        var filename = Path.Join(folder, $"{DateTime.Now:yyyy_MM_dd-HH_mm_ss_fff}.png");
+        ScreenshotWriter.StartSavingToFile(RenderProcess.MainOutputTexture, filename, ScreenshotWriter.FileFormats.Png);
+        Log.Debug("Screenshot saved in: " + folder);
+    }
 }

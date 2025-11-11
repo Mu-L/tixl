@@ -145,6 +145,7 @@ internal sealed class OutputWindow : Window
                 ImGui.PushStyleColor(ImGuiCol.ChildBg, Vector4.Zero);
                 ImGui.PushStyleColor(ImGuiCol.ScrollbarBg, new Vector4(0.3f, 0.3f, 0.3f, 0.1f));
                 DrawToolbar(drawnType);
+                DrawRenderProgressBar();
                 ImGui.PopStyleColor(6);
             }
 
@@ -301,9 +302,7 @@ internal sealed class OutputWindow : Window
             //{
             ImGui.SameLine(0, 2);
 
-            var project = ProjectView.Focused?.OpenedProject;
-            var projectFolder = project.Package.Folder;
-            var folder = Path.Combine(projectFolder, "Screenshots");
+
 
             var screenshotState = !RenderProcess.IsExporting && RenderProcess.MainOutputType != null
                                       ? CustomComponents.ButtonStates.Normal
@@ -311,18 +310,12 @@ internal sealed class OutputWindow : Window
 
             if (CustomComponents.IconButton(Icon.Snapshot, Vector2.Zero, screenshotState))
             {
-                if (RenderProcess.MainOutputTexture != null)
-                {
-                    if (!Directory.Exists(folder))
-                        Directory.CreateDirectory(folder);
-
-                    var filename = Path.Join(folder, $"{DateTime.Now:yyyy_MM_dd-HH_mm_ss_fff}.png");
-                    ScreenshotWriter.StartSavingToFile(RenderProcess.MainOutputTexture, filename, ScreenshotWriter.FileFormats.Png);
-                    Log.Debug("Screenshot saved in: " + folder);
-                }
+                RenderProcess.TryRenderScreenShot();
             }
 
-            CustomComponents.TooltipForLastItem("Save screenshot");
+            if(ImGui.IsAnyItemHovered())
+                CustomComponents.TooltipForLastItem("Save screenshot",
+                                                    UserActions.RenderScreenshot.ListKeyboardShortcutsForActionWithLabel());
 
             ImGui.SameLine();
 
@@ -344,20 +337,8 @@ internal sealed class OutputWindow : Window
                 }
             }
 
-            // Small render progress bar
-            if (RenderProcess.IsExporting)
-            {
-                var dl = ImGui.GetForegroundDrawList();
-                //var p = ImGui.GetItemRectMax();
-                var p = ImGui.GetWindowPos();
-                var size = new Vector2(ImGui.GetWindowSize().X, 2);
-                dl.AddRectFilled(p, p + size, UiColors.BackgroundFull.Fade(0.4f));
-                dl.AddRectFilled(p, p + new Vector2(size.X * (float)RenderProcess.Progress, size.Y), UiColors.StatusAttention);
-                dl.AddCircle(Vector2.Zero, 200, UiColors.StatusAttention);
-
-            }
-            
-            CustomComponents.TooltipForLastItem("Render Animation");
+            if(ImGui.IsAnyItemHovered())
+                CustomComponents.TooltipForLastItem("Render Animation", UserActions.RenderAnimation.ListKeyboardShortcutsForActionWithLabel());
 
             ImGui.SameLine();
             if (CustomComponents.IconButton(Icon.Settings2, Vector2.Zero))
@@ -367,6 +348,16 @@ internal sealed class OutputWindow : Window
         }
 
         ImGui.EndChild();
+    }
+
+    private static void DrawRenderProgressBar()
+    {
+        if (!RenderProcess.IsExporting) return;
+        var dl = ImGui.GetForegroundDrawList();
+        var p = ImGui.GetWindowPos();
+        var size = new Vector2(ImGui.GetWindowSize().X, 2);
+        dl.AddRectFilled(p, p + size, UiColors.BackgroundFull.Fade(0.4f));
+        dl.AddRectFilled(p, p + new Vector2(size.X * (float)RenderProcess.Progress, size.Y), UiColors.StatusAttention);
     }
 
     /// <summary>

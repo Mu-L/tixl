@@ -30,8 +30,14 @@ internal static class RenderPaths
         var directory = Path.GetDirectoryName(targetFile);
         if (targetFile != directory && File.Exists(targetFile))
         {
-            var result = BlockingWindow.Instance.ShowMessageBox("File exists. Overwrite?", "Render Video", "Yes", "No");
-            return (result == "Yes");
+            var info = new FileInfo(targetFile);
+            
+            if (info.Length == 0 || !info.IsReadOnly) // It's fine to override 0 size files
+            {
+                
+                var result = BlockingWindow.Instance.ShowMessageBox($"File {targetFile} exists. Overwrite?", "Render Video", "Yes", "No");
+                return result == "Yes";
+            }
         }
 
         if (directory == null || Directory.Exists(directory))
@@ -90,5 +96,6 @@ internal static class RenderPaths
         UserSettings.Config.RenderVideoFilePath = directoryName == null
                                                       ? newFilename
                                                       : Path.Combine(directoryName, newFilename);
+        UserSettings.Save();
     }
 }
