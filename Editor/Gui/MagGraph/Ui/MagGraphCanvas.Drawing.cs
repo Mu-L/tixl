@@ -309,7 +309,7 @@ internal sealed partial class MagGraphView
 
     private void SmoothItemPositions()
     {
-        const float dampAmount = 0.7f;
+        const float dampAmount = 0.33f;
 
         foreach (var i in _context.Layout.Items.Values)
         {
