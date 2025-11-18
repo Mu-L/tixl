@@ -2,6 +2,7 @@
 
 using ImGuiNET;
 using T3.Editor.Gui.Styling;
+using T3.Editor.SkillQuest;
 
 namespace T3.Editor.Gui.Hub;
 
@@ -9,6 +10,13 @@ internal static class SkillQuestPanel
 {
     internal static void Draw()
     {
+        if (!SkillManager.TryGetActiveTopic(out var activeTopic)
+            || !SkillManager.TryGetActiveLevel(out var activeLevel))
+        {
+            ImGui.TextUnformatted("non skill quest data");
+            return;
+        }
+
         ContentPanel.Begin("Skill Quest", "some sub title", DrawIcons, Height);
         {
             ImGui.BeginChild("Map", new Vector2(100, 0));
@@ -16,22 +24,30 @@ internal static class SkillQuestPanel
             ImGui.EndChild();
 
             ImGui.SameLine(0, 10);
-            
-            ImGui.BeginGroup();
-            ImGui.BeginChild("Content", new Vector2(0, -30),false );
-            {
-                ImGui.Text("Active level name");
-            }
-            ImGui.EndChild();
 
-            ImGui.BeginChild("actions");
+            ImGui.BeginGroup();
             {
-                ImGui.Button("Skip");
-                ImGui.SameLine(0, 10);
-                ImGui.Button("Start");
+                ImGui.BeginChild("Content", new Vector2(0, -30), false);
+                {
+                    ImGui.PushFont(Fonts.FontSmall);
+                    ImGui.PushStyleColor(ImGuiCol.Text, UiColors.TextMuted.Rgba);
+                    ImGui.TextUnformatted(activeTopic.Title);
+                    ImGui.PopStyleColor();
+                    ImGui.PopFont();
+                    
+                    ImGui.Text(activeLevel.Title);
+                }
+                ImGui.EndChild();
+
+                ImGui.BeginChild("actions");
+                {
+                    ImGui.Button("Skip");
+                    ImGui.SameLine(0, 10);
+                    ImGui.Button("Start");
+                    SkillManager.StartGame(activeTopic, activeLevel);
+                }
+                ImGui.EndChild();
             }
-            ImGui.EndChild();
-            
             ImGui.EndGroup();
         }
 

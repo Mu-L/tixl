@@ -8,12 +8,11 @@ internal sealed class OpenedProject
     public readonly EditorSymbolPackage Package;
     public readonly Structure Structure;
     
-    // TODO: This is not updated or used?
-    private readonly List<ProjectView> _projectViews = [];
-
     public static readonly Dictionary<EditorSymbolPackage, OpenedProject> OpenedProjects = new();
 
-    public static bool TryCreate(EditorSymbolPackage project, [NotNullWhen(true)] out OpenedProject? openedProject, [NotNullWhen(false)] out string? failureLog)
+    public static bool TryCreate(EditorSymbolPackage project, 
+                                 [NotNullWhen(true)] out OpenedProject? openedProject, 
+                                 [NotNullWhen(false)] out string? failureLog)
     {
         if (OpenedProjects.TryGetValue(project, out openedProject))
         {

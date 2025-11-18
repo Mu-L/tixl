@@ -15,7 +15,8 @@ namespace T3.Editor.Gui.MagGraph.Ui;
 
 internal sealed partial class MagGraphView
 {
-    private Dictionary<int, (Vector2 source, Vector2 target)> _previousConnectionPositions = new();
+    private readonly Dictionary<int, (Vector2 source, Vector2 target)> _previousConnectionPositions = new();
+    
     public void DrawGraph(ImDrawListPtr drawList, float graphOpacity)
     {
         _context.GraphOpacity = graphOpacity;
