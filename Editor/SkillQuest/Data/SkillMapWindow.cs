@@ -5,8 +5,11 @@ using T3.Core.DataTypes;
 using T3.Core.Utils;
 using T3.Editor.Gui;
 using T3.Editor.Gui.Input;
+using T3.Editor.Gui.MagGraph.Model;
 using T3.Editor.Gui.Styling;
+using T3.Editor.Gui.UiHelpers;
 using T3.Editor.UiModel.InputsAndTypes;
+using T3.Editor.UiModel.Selection;
 
 namespace T3.Editor.SkillQuest.Data;
 
@@ -79,6 +82,7 @@ internal static class SkillMapPopup
                 }
 
                 _canvas.UpdateCanvas(out _);
+                
                 DrawContent();
             }
 
@@ -97,9 +101,85 @@ internal static class SkillMapPopup
         ImGui.PopStyleVar();
     }
 
+    private static void HandleFenceSelection()
+    {
+        var shouldBeActive =
+                ImGui.IsWindowHovered(ImGuiHoveredFlags.AllowWhenBlockedByPopup)
+                && _state == States.Default;
+
+        if (!shouldBeActive)
+        {
+            _fence.Reset();
+            return;
+        }
+
+        switch (_fence.UpdateAndDraw(out var selectMode))
+        {
+            case SelectionFence.States.PressedButNotMoved:
+                if (selectMode == SelectionFence.SelectModes.Replace)
+                    _selectedTopics.Clear();
+                break;
+
+            case SelectionFence.States.Updated:
+                HandleSelectionFenceUpdate(_fence.BoundsUnclamped, selectMode);
+                
+                break;
+
+            case SelectionFence.States.CompletedAsClick:
+                // A hack to prevent clearing selection when opening parameter popup
+                if (ImGui.IsPopupOpen("", ImGuiPopupFlags.AnyPopup))
+                    break;
+
+                _selectedTopics.Clear();
+                break;
+            case SelectionFence.States.Inactive:
+                break;
+            case SelectionFence.States.CompletedAsArea:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+    
+    private static void HandleSelectionFenceUpdate(ImRect bounds, SelectionFence.SelectModes selectMode)
+    {
+        //var boundsInScreen = _canvas.InverseTransformRect(bounds);
+
+        if (selectMode == SelectionFence.SelectModes.Replace)
+        {
+            _selectedTopics.Clear();
+        }
+
+        // Add items
+        foreach (var topic in SkillMap.AllTopics)
+        {
+            var centerOnScreen = _canvas.ScreenPosFromCell(topic.Cell);
+            if (!bounds.Contains(centerOnScreen))
+                continue;
+
+            if (selectMode == SelectionFence.SelectModes.Remove)
+            {
+                _selectedTopics.Remove(topic);
+            }
+            else
+            {
+                _selectedTopics.Add(topic);
+            }
+        }
+    }
+
+    
+    
+    
+    
+    
+    
+    
+    
     private enum States
     {
         Default,
+        HoldingItem,
         LinkingItems,
         DraggingItems,
     }
@@ -214,7 +294,9 @@ internal static class SkillMapPopup
 
         if (!isAnyItemHovered && ImGui.IsWindowHovered() && !ImGui.IsMouseDown(ImGuiMouseButton.Right))
         {
-            DrawHoveredEmptyCell(dl, mouseCell);
+            HandleFenceSelection();
+            if(_fence.State != SelectionFence.States.Updated)
+                DrawHoveredEmptyCell(dl, mouseCell);
         }
     }
 
@@ -336,6 +418,12 @@ internal static class SkillMapPopup
         switch (_state)
         {
             case States.Default:
+                if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                    _state = States.HoldingItem;
+                
+                break;
+            
+            case States.HoldingItem:
                 if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
                 {
                     if (!ImGui.GetIO().KeyShift)
@@ -346,7 +434,7 @@ internal static class SkillMapPopup
                     _selectedTopics.Add(topic);
                     _lastType = topic.Type;
                 }
-
+                
                 // Start Dragging
                 if (ImGui.IsMouseDragging(ImGuiMouseButton.Left))
                 {
@@ -419,4 +507,5 @@ internal static class SkillMapPopup
     private static Type _lastType = typeof(float);
     private static States _state;
     private static readonly HexCanvas _canvas = new();
+    private static readonly SelectionFence _fence = new ();
 }
