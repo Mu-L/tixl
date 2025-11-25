@@ -150,13 +150,6 @@
       }
     },
     {
-      "ChildId": "5d430d9d-95f2-4bb3-9ebd-6309c0300baf"/*Boolean*/,
-      "Position": {
-        "X": 193.95288,
-        "Y": -233.92274
-      }
-    },
-    {
       "ChildId": "627af928-79a9-4314-917a-f14c9d424e6e"/*Group*/,
       "Position": {
         "X": 1007.7449,

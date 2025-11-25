@@ -5,14 +5,13 @@ using T3.Editor.Gui;
 using T3.Editor.Gui.Input;
 using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
-using T3.Editor.Skills.Training;
 using T3.Editor.Skills.Data;
-using T3.Editor.Skills.Ui;
+using T3.Editor.Skills.Training;
 using Color = T3.Core.DataTypes.Vector.Color;
 using Vector2 = System.Numerics.Vector2;
 using Vector4 = System.Numerics.Vector4;
 
-namespace T3.Editor.Skills;
+namespace T3.Editor.Skills.Ui;
 
 /// <summary>
 /// A dialog that is shown after level completed.
@@ -161,7 +160,7 @@ internal static class SkillProgressionPopup
         ImGui.PushStyleColor(ImGuiCol.Button, Color.Transparent.Rgba);
         if (ImGui.Button("Back to Hub", Vector2.Zero))
         {
-            SkillTraining.SaveResult(SkillProgress.LevelResult.States.Skipped);
+            SkillTraining.SaveNewResult(SkillProgress.LevelResult.States.Skipped);
             SkillTraining.ExitPlayMode();
         }
 
@@ -172,8 +171,8 @@ internal static class SkillProgressionPopup
         if (ImGui.Button("Skip", new Vector2(wSkip, btnH)))
         {
             //SkillManager.CompleteAndProgressToNextLevel(SkillProgression.LevelResult.States.Skipped);
-            SkillTraining.SaveResult(SkillProgress.LevelResult.States.Skipped);
-            SkillTraining.UpdateActiveTopicAndLevel();
+            SkillTraining.SaveNewResult(SkillProgress.LevelResult.States.Skipped);
+            SkillTraining.UpdateTopicStatesAndProgression();
         }
 
         ImGui.PopStyleColor();

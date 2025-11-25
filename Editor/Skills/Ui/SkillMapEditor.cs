@@ -271,7 +271,7 @@ internal static class SkillMapEditor
                                    Title = "New topic" + SkillMapData.Data.Topics.Count(),
                                    ZoneId = activeTopic?.ZoneId ?? Guid.Empty,
                                    TopicType = _lastType,
-                                   Status = activeTopic?.Status ?? QuestTopic.Statuses.Locked,
+                                   ProgressionState = activeTopic?.ProgressionState ?? QuestTopic.ProgressStates.Locked,
                                    Requirement = activeTopic?.Requirement ?? QuestTopic.Requirements.AllInputPaths,
                                };
 

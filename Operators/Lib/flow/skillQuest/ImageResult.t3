@@ -13,7 +13,7 @@
       "Id": "cf267a38-5504-4d0c-b149-17bbe62c70cf"/*DifferenceRange*/,
       "DefaultValue": {
         "X": 0.0,
-        "Y": 0.1
+        "Y": 0.03
       }
     }
   ],
@@ -367,18 +367,6 @@
       "Outputs": []
     },
     {
-      "Id": "5d430d9d-95f2-4bb3-9ebd-6309c0300baf"/*Boolean*/,
-      "SymbolId": "ed0f5188-8888-453e-8db4-20d87d18e9f4",
-      "InputValues": [
-        {
-          "Id": "e7c1f0af-da6d-4e33-ac86-7dc96bfe7eb3"/*BoolValue*/,
-          "Type": "System.Boolean",
-          "Value": true
-        }
-      ],
-      "Outputs": []
-    },
-    {
       "Id": "627af928-79a9-4314-917a-f14c9d424e6e"/*Group*/,
       "SymbolId": "a3f64d34-1fab-4230-86b3-1c3deba3f90b",
       "InputValues": [],
@@ -563,7 +551,7 @@
         {
           "Id": "bfe68cee-b0f2-4140-931a-c8e089f7e2c2"/*DelayDuration*/,
           "Type": "System.Single",
-          "Value": 1.5
+          "Value": 1.0
         },
         {
           "Id": "da8498e1-a466-435b-9750-80a751dea6c6"/*Mode*/,

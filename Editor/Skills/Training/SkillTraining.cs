@@ -11,6 +11,7 @@ using T3.Editor.Gui.Window;
 using T3.Editor.Gui.Windows.Layouts;
 using T3.Editor.Gui.Windows.Output;
 using T3.Editor.Skills.Data;
+using T3.Editor.Skills.Ui;
 using T3.Editor.UiModel;
 using T3.Editor.UiModel.ProjectHandling;
 using T3.Editor.UiModel.Selection;
@@ -25,10 +26,9 @@ internal static partial class SkillTraining
     internal static void Initialize()
     {
         SkillProgress.LoadUserData();
-        
         SkillMapData.Load();
         InitializeSkillMapFromLevelSymbols();
-        UpdateActiveTopicAndLevel();
+        UpdateTopicStatesAndProgression();
     }
 
     public static void StartPlayModeFromHub(GraphWindow graphWindow)
@@ -40,6 +40,7 @@ internal static partial class SkillTraining
     private static void StartActiveLevel()
     {
         Debug.Assert(_context.GraphWindow != null);
+        Debug.Assert(_context.ActiveTopic != null);
         Debug.Assert(_context.ActiveLevel != null);
 
         if (!TryGetSkillsProject(out var skillProject) || _context.ActiveLevel == null)
@@ -54,6 +55,7 @@ internal static partial class SkillTraining
             return;
         }
 
+        SkillProgress.Data.ActiveTopicId = _context.ActiveTopic.Id;
         _context.GraphWindow.TrySetToProject(openedProject, tryRestoreViewArea: false);
         _context.ProjectView?.FocusViewToSelection();
         _context.OpenedProject = openedProject;
@@ -74,6 +76,7 @@ internal static partial class SkillTraining
         }
 
         UiState.HideAllUiElements();
+        UserSettings.Config.EnableIdleMotion = true;
 
         // Pin output
         var rootInstance = _context.OpenedProject.Structure.GetRootInstance();
@@ -132,9 +135,11 @@ internal static partial class SkillTraining
             return;
         }
 
-        if (_context.StateMachine.StateTime > 1 && progress >= 1.0f)
+        if (_context.StateMachine.StateTime > 0.2f && progress >= 1.0f)
         {
             _context.StateMachine.SetState(SkillTrainingStates.Completed, _context);
+            SaveNewResult(SkillProgress.LevelResult.States.Completed);
+            UpdateTopicStatesAndProgression(); 
             SkillProgressionPopup.Show();
             //CompleteAndExitLevel();
         }
@@ -142,116 +147,199 @@ internal static partial class SkillTraining
 
     internal static void CompleteAndProgressToNextLevel(SkillProgress.LevelResult.States status)
     {
-        SaveResult(status);
+
         ExitPlayMode();
-        UpdateActiveTopicAndLevel(); // Progress to the next level...
         StartActiveLevel();
     }
-    
-    
 
-    internal static void SaveResult(SkillProgress.LevelResult.States resultState)
+    internal static void SaveNewResult(SkillProgress.LevelResult.States resultState)
     {
         if (_context.ActiveTopic == null || _context.ActiveLevel == null)
             return;
 
         SkillProgress.SaveLevelResult(_context.ActiveLevel, new SkillProgress.LevelResult
-                                                                   {
-                                                                       TopicId = _context.ActiveTopic.Id,
-                                                                       LevelSymbolId = _context.ActiveLevel.SymbolId,
-                                                                       StartTime = DateTime.Now,
-                                                                       EndTime = DateTime.Now,
-                                                                       State = resultState,
-                                                                       Rating = -1,
-                                                                   });
+                                                                {
+                                                                    TopicId = _context.ActiveTopic.Id,
+                                                                    LevelSymbolId = _context.ActiveLevel.SymbolId,
+                                                                    StartTime = DateTime.Now,
+                                                                    EndTime = DateTime.Now,
+                                                                    State = resultState,
+                                                                    Rating = -1,
+                                                                });
     }
-    
 
     /// <summary>
     /// Update active topic and level from the last completed or skipped level in skill progression 
     /// </summary>
-    internal static bool UpdateActiveTopicAndLevel()
+    internal static bool UpdateTopicStatesAndProgression()
     {
-        if (SkillMapData.Data.Zones.Count == 0)
-            return false;
+        _cache.UpdateCache();
 
-        if (!SkillProgress.TryGetLastResult(out var lastResult)
-            || !TryGetTopicAndLevelForResult(lastResult,
-                                             out var lastCompletedTopic, 
-                                             out var lastCompletedLevel))
+        // Will be updated in the next pass
+        foreach (var topic in SkillMapData.Data.Topics)
         {
-            // Start with the first topic and first zone
-            _context.ActiveTopic = SkillMapData.Data.Topics.FirstOrDefault();
-            if (_context.ActiveTopic == null || _context.ActiveTopic.Levels.Count == 0)
+            topic.RequiredTopicIds.Clear();
+        }
+
+        // Update topic states
+        foreach (var topic in SkillMapData.Data.Topics)
+        {
+            if (topic.Levels.Count == 0)
             {
-                return false;
+                topic.ProgressionState = QuestTopic.ProgressStates.Upcoming;
+                continue;
             }
 
-            _context.ActiveLevel = _context.ActiveTopic.Levels[0];
-            return true;
+            foreach (var unlockedTopicId in topic.UnlocksTopics)
+            {
+                if (!_cache.TopicsById.TryGetValue(unlockedTopicId, out var unlockedTopic))
+                {
+                    Log.Warning($"Can't find topic id {unlockedTopicId} to unlock ?");
+                    continue;
+                }
+
+                unlockedTopic.RequiredTopicIds.Add(topic.Id);
+            }
+
+            var someLevelsNotCompleted = false;
+            var someLevelsSkipped = false;
+            topic.CompletedLevelCount = 0;
+
+            foreach (var level in topic.Levels)
+            {
+                level.LevelState = SkillProgress.LevelResult.States.Undefined;
+                if (!_cache.ResultsForLevelId.TryGetValue(level.SymbolId, out var results))
+                {
+                    topic.ProgressionState = QuestTopic.ProgressStates.NoResultsYet;
+                    continue;
+                }
+
+                var resultsSkipped = 0;
+                var resultsCompleted = 0;
+
+                foreach (var r in results)
+                {
+                    switch (r.State)
+                    {
+                        case SkillProgress.LevelResult.States.Skipped:
+                            resultsSkipped++;
+                            break;
+                        case SkillProgress.LevelResult.States.Completed:
+                            resultsCompleted++;
+                            break;
+                    }
+                }
+
+                if (resultsCompleted > 0)
+                {
+                    topic.CompletedLevelCount++;
+                    level.LevelState = SkillProgress.LevelResult.States.Completed;
+                    continue;
+                }
+
+                if (resultsSkipped > 0)
+                {
+                    level.LevelState = SkillProgress.LevelResult.States.Skipped;
+                    topic.SkippedLevelCount++;
+                    someLevelsSkipped = true;
+                    continue;
+                }
+
+                someLevelsNotCompleted = true;
+            }
+
+            if (someLevelsNotCompleted)
+            {
+                topic.ProgressionState = QuestTopic.ProgressStates.Started;
+                continue;
+            }
+
+            if (!someLevelsSkipped)
+            {
+                topic.ProgressionState = QuestTopic.ProgressStates.Passed;
+                continue;
+            }
+
+            topic.ProgressionState = QuestTopic.ProgressStates.Completed;
         }
 
-        var lastLevelIndex = lastCompletedTopic.Levels.IndexOf(lastCompletedLevel);
-        Debug.Assert(lastLevelIndex != -1);
-
-        // TODO: we later should also check for non-linear progression....
-        var topicStillHasLevels = lastLevelIndex < lastCompletedTopic.Levels.Count - 1;
-        if (topicStillHasLevels)
-        {
-            _context.ActiveTopic = lastCompletedTopic;
-            _context.ActiveLevel = lastCompletedTopic.Levels[lastLevelIndex + 1];
-            return true;
-        }
-
-
-        Debug.Assert(false);
+        // Flood fill unlocking...
+        while (TryUnlockMoreTopics()) ;
         
-        return false;
-        // TODO: For properly advancing between topic we will need more logic and interactions later...
-        // var topicIndex = SkillMap.Data.Topics.IndexOf(lastCompletedTopic);
-        // var hasMoreTopics = topicIndex < SkillMap.Data.Topics.Count - 1;
-        // if (hasMoreTopics)
-        // {
-        //     _context.ActiveTopic = SkillMap.Data.Topics[topicIndex + 1];
-        //     _context.ActiveLevel = _context.ActiveTopic.Levels[0];
-        //     return true;
-        // }
-        //
-        // // Restart from the beginning...
-        // _context.ActiveTopic = SkillMap.Data.Topics[0];
-        // _context.ActiveLevel = _context.ActiveTopic.Levels[0];
+        
+        if(!_cache.TopicsById.TryGetValue(SkillProgress.Data.ActiveTopicId, out var activeTopic ) 
+           || activeTopic.Levels.Count ==0)
+        {
+            if (SkillMapData.Data.Topics.Count == 0 || SkillMapData.Data.Topics[0].Levels.Count == 0)
+            {
+                Log.Warning("No skill quest levels found?");
+                _context.ActiveTopic = null;
+                _context.ActiveLevel = null;
+                return false;
+            }
+            
+            _context.ActiveTopic = SkillMapData.Data.Topics[0];
+            _context.ActiveLevel = _context.ActiveTopic.Levels[0];
+            
+            Log.Debug($"Reset active skill topic to '{_context.ActiveTopic}'");
+            return true;
+        }
+
+        QuestLevel activeLevel=null!;
+        for (var index = 0; index < activeTopic.Levels.Count; index++)
+        {
+            activeLevel = activeTopic.Levels[index];
+            if (activeLevel.LevelState == SkillProgress.LevelResult.States.Undefined)
+                break;
+        }
+
+        _context.ActiveTopic = activeTopic;
+        _context.ActiveLevel = activeLevel;
         return true;
     }
 
-    private static bool TryGetTopicAndLevelForResult(SkillProgress.LevelResult result,
-                                                     
-                                                     [NotNullWhen(true)] out QuestTopic? topic,
-                                                     [NotNullWhen(true)] out QuestLevel? level)
+    /** Returns true if at least one topic got unlocked */
+    private static bool TryUnlockMoreTopics()
     {
-        
-        topic = null;
-        level = null;
+        var anyUnlocked = false;
 
-        foreach (var t in SkillMapData.Data.Topics)
+        foreach (var topic in SkillMapData.Data.Topics)
         {
-            if (t.Id != result.TopicId)
+            if (topic.ProgressionState != QuestTopic.ProgressStates.NoResultsYet)
                 continue;
 
-            foreach (var l in t.Levels)
+            if (topic.RequiredTopicIds.Count == 0)
             {
-                if (l.SymbolId == result.LevelSymbolId)
-                {
-                    topic = t;
-                    level = l;
-                    return true;
-                }
+                topic.ProgressionState = QuestTopic.ProgressStates.Unlocked;
+                anyUnlocked = true;
             }
 
-            return false;
+            var allUnlocked = true;
+            foreach (var requiredId in topic.RequiredTopicIds)
+            {
+                if (!_cache.TopicsById.TryGetValue(requiredId, out var requiredTopic))
+                {
+                    // Would have warned earlier
+                    continue;
+                }
+
+                var unlocked = requiredTopic.ProgressionState == QuestTopic.ProgressStates.Completed
+                               || requiredTopic.ProgressionState == QuestTopic.ProgressStates.Passed;
+
+                if (!unlocked)
+                    allUnlocked = false;
+            }
+
+            if (!allUnlocked)
+                continue;
+
+            topic.ProgressionState = QuestTopic.ProgressStates.Unlocked;
+            anyUnlocked = true;
         }
 
-        return false;
+        return anyUnlocked;
     }
+
 
     private static bool TryGetSkillsProject([NotNullWhen(true)] out EditableSymbolProject? skillProject)
     {
@@ -284,13 +372,13 @@ internal static partial class SkillTraining
     }
 
     public static bool IsInPlayMode => (_context.StateMachine.CurrentState == SkillTrainingStates.Playing ||
-                                       _context.StateMachine.CurrentState == SkillTrainingStates.Completed);
+                                        _context.StateMachine.CurrentState == SkillTrainingStates.Completed);
 
     public static void DrawLevelHeader()
     {
         var test1 = _context.StateMachine.CurrentState == SkillTrainingStates.Playing;
         var test2 = _context.StateMachine.CurrentState == SkillTrainingStates.Completed;
-        
+
         if (!test1 && !test2)
             return;
 
@@ -344,21 +432,58 @@ internal static partial class SkillTraining
         return true;
     }
 
-    private static bool IsInPlaymode => _context.StateMachine.CurrentState == SkillTrainingStates.Playing;
+    //private static bool IsInPlaymode => _context.StateMachine.CurrentState == SkillTrainingStates.Playing;
     private const string PlayModeProgressVariableId = "_PlayModeProgress";
 
     private static readonly SkillTrainingContext _context = new()
-                                                             {
-                                                                 StateMachine = new
-                                                                     StateMachine<SkillTrainingContext>(typeof(SkillTrainingStates),
-                                                                                                     SkillTrainingStates.Inactive
-                                                                                                    ),
-                                                             };
+                                                                {
+                                                                    StateMachine = new
+                                                                        StateMachine<SkillTrainingContext>(typeof(SkillTrainingStates),
+                                                                                 SkillTrainingStates.Inactive
+                                                                            ),
+                                                                };
 
     public static void ResetProgress()
     {
         SkillProgress.Data.Results.Clear();
         SkillProgress.SaveUserData();
-        UpdateActiveTopicAndLevel();
+        UpdateTopicStatesAndProgression();
+    }
+
+    private static readonly Cache _cache = new();
+
+    /** Small helper class to speed up access. Updating this is slow and should only be done after data change. */
+    private sealed class Cache
+    {
+        public void UpdateCache()
+        {
+            TopicsById.Clear();
+            LevelsById.Clear();
+            ResultsForLevelId.Clear();
+
+            foreach (var result in SkillProgress.Data.Results)
+            {
+                if (!ResultsForLevelId.TryGetValue(result.LevelSymbolId, out var levelResults))
+                {
+                    levelResults = [];
+                    ResultsForLevelId[result.LevelSymbolId] = levelResults;
+                }
+
+                levelResults.Add(result);
+            }
+
+            foreach (var topic in SkillMapData.Data.Topics)
+            {
+                TopicsById[topic.Id] = topic;
+                foreach (var level in topic.Levels)
+                {
+                    LevelsById[level.SymbolId] = level;
+                }
+            }
+        }
+
+        public readonly Dictionary<Guid, QuestTopic> TopicsById = new();
+        public readonly Dictionary<Guid, QuestLevel> LevelsById = new();
+        public readonly Dictionary<Guid, List<SkillProgress.LevelResult>> ResultsForLevelId = new();
     }
 }

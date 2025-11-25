@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using ImGuiNET;
+using T3.Editor.Gui.Input;
 using T3.Editor.Gui.Window;
 using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
@@ -17,29 +18,50 @@ internal static class SkillQuestPanel
     {
         if (!SkillTraining.TryGetActiveTopicAndLevel(out var activeTopic, out var activeLevel))
         {
-            ImGui.TextUnformatted("non skill quest data");
+            ImGui.TextUnformatted("no skill quest data");
             return;
         }
 
         if (projectViewJustClosed)
         {
             _selectedTopic.Clear();
-            _selectedTopic.Add(activeTopic);
+            if (activeTopic.ProgressionState == QuestTopic.ProgressStates.Completed)
+            {
+                foreach (var topic in SkillMapData.Data.Topics)
+                {
+                    if (topic.ProgressionState == QuestTopic.ProgressStates.Completed
+                        || topic.ProgressionState == QuestTopic.ProgressStates.Unlocked
+                        || topic.ProgressionState == QuestTopic.ProgressStates.Passed)
+                        _selectedTopic.Add(topic);
+                }
+            }
+            else
+            {
+                _selectedTopic.Add(activeTopic);
+            }
             _mapCanvas.FocusToActiveTopics(_selectedTopic);
+            
+            // Only selected active
+            _selectedTopic.Clear();
+            _selectedTopic.Add(activeTopic);
         }
 
-        ContentPanel.Begin("Skill Quest", "some sub title", DrawIcons, Height);
+        ContentPanel.Begin("Skill Quest", 
+                           "An interactive journey from playful TiXL basics to advanced real-time graphics design.", 
+                           DrawIcons, Height);
         {
-            ImGui.BeginChild("Map", new Vector2(400, 0), false, ImGuiWindowFlags.NoBackground);
-            //ImGui.Text("Dragons\nbe here");
-            _mapCanvas.DrawContent(null, out _, _selectedTopic);
+            FormInputs.AddVerticalSpace(5);
+            ImGui.PushStyleColor(ImGuiCol.ChildBg, UiColors.BackgroundFull.Rgba);
+            ImGui.BeginChild("Map", new Vector2(200, 0), false);
+            _mapCanvas.DrawContent(HandleTopicInteraction2, out _, _selectedTopic);
             ImGui.EndChild();
+            ImGui.PopStyleColor();
 
-            ImGui.SameLine(0, 10);
+            ImGui.SameLine(0, 0);
 
             ImGui.BeginGroup();
             {
-                ImGui.BeginChild("Content", new Vector2(0, -30), false);
+                ImGui.BeginChild("Content", new Vector2(-10, -30), false);
                 {
                     ImGui.PushFont(Fonts.FontSmall);
                     ImGui.PushStyleColor(ImGuiCol.Text, UiColors.TextMuted.Rgba);
@@ -51,7 +73,7 @@ internal static class SkillQuestPanel
                 }
                 ImGui.EndChild();
 
-                ImGui.BeginChild("actions");
+                ImGui.BeginChild("actions",new Vector2(-10, 0));
                 {
                     ImGui.Button("Skip");
                     ImGui.SameLine(0, 10);
@@ -74,12 +96,27 @@ internal static class SkillQuestPanel
         ContentPanel.End();
     }
 
+    
+    
+    private static void HandleTopicInteraction2(QuestTopic topic, bool isSelected)
+    {
+        if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+        {
+            SkillProgress.Data.ActiveTopicId = topic.Id;
+            SkillProgress.SaveUserData();
+            _selectedTopic.Clear();
+            _selectedTopic.Add(topic);
+            SkillTraining.UpdateTopicStatesAndProgression();
+        }
+    }
+    
     private static void DrawIcons()
     {
-        ImGui.Button("New Project");
-        ImGui.SameLine(0, 10);
-
-        Icon.AddFolder.DrawAtCursor();
+        ImGui.Dummy(new Vector2());
+        // ImGui.Button("New Project");
+        // ImGui.SameLine(0, 10);
+        //
+        // Icon.AddFolder.DrawAtCursor();
     }
 
     internal static float Height => 220 * T3Ui.UiScaleFactor;

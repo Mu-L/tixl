@@ -9,12 +9,12 @@ using T3.Editor.UiModel.InputsAndTypes;
 
 namespace T3.Editor.Skills.Ui;
 
-internal sealed class SkillMapCanvas :HexCanvas
+internal sealed class SkillMapCanvas : HexCanvas
 {
     public bool DrawContent(HandleTopicInteraction? topicAction, out HexCanvas.Cell mouseCell, HashSet<QuestTopic> selection)
     {
         UpdateCanvas(out _);
-        
+
         var dl = ImGui.GetWindowDrawList();
 
         var mousePos = ImGui.GetMousePos();
@@ -33,7 +33,7 @@ internal sealed class SkillMapCanvas :HexCanvas
     {
         if (selection.Count == 0)
             return;
-        
+
         var isFirst = true;
         ImRect canvasArea = new ImRect();
         foreach (var topic in selection)
@@ -41,7 +41,7 @@ internal sealed class SkillMapCanvas :HexCanvas
             var posOnCanvas = CanvasPosFromCell(topic.Cell);
             if (isFirst)
             {
-                canvasArea= ImRect.RectWithSize(posOnCanvas, Vector2.One);
+                canvasArea = ImRect.RectWithSize(posOnCanvas, Vector2.One);
                 isFirst = false;
             }
             else
@@ -49,8 +49,8 @@ internal sealed class SkillMapCanvas :HexCanvas
                 canvasArea.Add(posOnCanvas);
             }
         }
-        
-        canvasArea.Expand(200);
+
+        canvasArea.Expand(160);
         FitAreaOnCanvas(canvasArea);
     }
 
@@ -58,7 +58,7 @@ internal sealed class SkillMapCanvas :HexCanvas
     /// return true if hovered
     /// </returns>
     private bool DrawTopicCell(ImDrawListPtr dl, QuestTopic topic, HexCanvas.Cell cellUnderMouse, HashSet<QuestTopic> selection,
-                                      HandleTopicInteraction? topicAction)
+                               HandleTopicInteraction? topicAction)
     {
         var cell = new HexCanvas.Cell(topic.MapCoordinate);
 
@@ -78,8 +78,17 @@ internal sealed class SkillMapCanvas :HexCanvas
                            _                                 => throw new ArgumentOutOfRangeException()
                        };
 
+        var unlockProgressFade = topic.ProgressionState switch
+                                     {
+                                         QuestTopic.ProgressStates.Upcoming  => 0.2f,
+                                         QuestTopic.ProgressStates.Completed => 0.8f,
+                                         QuestTopic.ProgressStates.Active    => 0.8f,
+                                         _                                   => 1f
+                                     };
+
         var typeColor = TypeUiRegistry.GetTypeOrDefaultColor(type);
-        dl.AddNgonRotated(posOnScreen, radius * 0.95f, typeColor.Fade(isHovered ? 0.3f : 0.15f));
+        var isHoveredFade = isHovered ? 1f : 0.9f;
+        dl.AddNgonRotated(posOnScreen, radius * 0.95f, typeColor.Fade(isHoveredFade * unlockProgressFade));
 
         var isSelected = selection.Contains(topic);
         if (isSelected)
@@ -119,11 +128,28 @@ internal sealed class SkillMapCanvas :HexCanvas
                 CustomImguiDraw.AddWrappedCenteredText(dl, topic.Title, posOnScreen, 13, UiColors.ForegroundFull.Fade(labelAlpha));
                 ImGui.PopFont();
 
-                if (topic.Status == QuestTopic.Statuses.Locked)
+                if (topic.ProgressionState == QuestTopic.ProgressStates.Locked
+                    || topic.ProgressionState == QuestTopic.ProgressStates.Upcoming
+                   )
                 {
                     Icons.DrawIconAtScreenPosition(Icon.Locked, (posOnScreen + new Vector2(-Icons.FontSize / 2, 25f * Scale.Y)).Floor(),
                                                    dl,
                                                    UiColors.ForegroundFull.Fade(0.4f * labelAlpha));
+                }
+                else if (topic.ProgressionState == QuestTopic.ProgressStates.Locked)
+                {
+                    Icons.DrawIconAtScreenPosition(Icon.Checkmark, (posOnScreen + new Vector2(-Icons.FontSize / 2, 25f * Scale.Y)).Floor(),
+                                                   dl,
+                                                   UiColors.ForegroundFull.Fade(0.4f * labelAlpha));
+                }
+                else
+                {
+                    ImGui.PushFont(Scale.X < 0.6f ? Fonts.FontSmall : Fonts.FontNormal);
+                    CustomImguiDraw.AddWrappedCenteredText(dl,
+                                                           $"{topic.CompletedLevelCount} / {topic.Levels.Count}",
+                                                           posOnScreen + new Vector2(0, 25f * Scale.Y),
+                                                           13, UiColors.ForegroundFull.Fade(labelAlpha));
+                    ImGui.PopFont();
                 }
             }
         }
@@ -133,14 +159,22 @@ internal sealed class SkillMapCanvas :HexCanvas
 
         // Mouse interactions ----------------
 
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(3));
         ImGui.BeginTooltip();
-        ImGui.TextUnformatted(topic.Title);
-        if (!string.IsNullOrEmpty(topic.Description))
         {
-            CustomComponents.StylizedText(topic.Description, Fonts.FontSmall, UiColors.TextMuted);
+            {
+                CustomComponents.StylizedText(topic.ProgressionState.ToString(), Fonts.FontSmall, UiColors.TextMuted);
+            }
+            
+            ImGui.TextUnformatted(topic.Title);
+            if (!string.IsNullOrEmpty(topic.Description))
+            {
+                CustomComponents.StylizedText(topic.Description, Fonts.FontSmall, UiColors.TextMuted);
+            }
+            
         }
-
         ImGui.EndTooltip();
+        ImGui.PopStyleVar();
 
         topicAction?.Invoke(topic, isSelected);
         return isHovered;

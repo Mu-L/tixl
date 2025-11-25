@@ -12,7 +12,7 @@ namespace T3.Editor.Skills.Data;
 /// </summary>
 public sealed class SkillProgress
 {
-    public QuestTopic ActiveTopicId;
+    public Guid ActiveTopicId;
 
     public List<LevelResult> Results = [];
 
@@ -31,6 +31,7 @@ public sealed class SkillProgress
 
         public enum States
         {
+            Undefined,
             Started,
             Skipped,
             Completed,

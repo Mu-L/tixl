@@ -23,16 +23,35 @@ public sealed class QuestTopic
     [JsonConverter(typeof(SafeEnumConverter<TopicTypes>))]
     public TopicTypes TopicType;
 
-    [JsonConverter(typeof(SafeEnumConverter<Statuses>))]
-    public Statuses Status;
+    [JsonIgnore]
+    public ProgressStates ProgressionState;
 
     [JsonConverter(typeof(SafeEnumConverter<Requirements>))]
     public Requirements Requirement = Requirements.None;
 
+    public override string ToString()
+    {
+        return Title;
+    }
+
+    #region runtime data 
+    
     /** Levels will be initialized from symbols in a Skills package */
     [JsonIgnore]
     public List<QuestLevel> Levels = [];
 
+    [JsonIgnore]
+    public int CompletedLevelCount;
+    
+    [JsonIgnore]
+    public int SkippedLevelCount;
+
+    [JsonIgnore]
+    public HashSet<Guid> RequiredTopicIds = [];
+
+    #endregion
+    
+    
     public enum Requirements
     {
         None,
@@ -41,11 +60,32 @@ public sealed class QuestTopic
         AllInputPaths,
     }
 
-    public enum Statuses
+    public enum ProgressStates
     {
         None,
+        
+        /** Planned topic (created but no levels added. */
+        Upcoming,
+        
+        /** temp state during progress calculation */
+        NoResultsYet,  
+        
+        /** Not all required topics completed */
         Locked,
+        
+        /** All requirements are met */
         Unlocked,
+        
+        /** The currently played level */
+        Active,
+        
+        /** Topic started but not all completed */
+        Started,
+        
+        /** Completed by skipped some levels */
+        Passed,
+        
+        /** Completed all levels */
         Completed,
     }
 
