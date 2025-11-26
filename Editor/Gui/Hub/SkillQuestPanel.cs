@@ -55,7 +55,7 @@ internal static class SkillQuestPanel
         {
             FormInputs.AddVerticalSpace(5);
             ImGui.PushStyleColor(ImGuiCol.ChildBg, UiColors.BackgroundFull.Rgba);
-            ImGui.BeginChild("Map", new Vector2(200, 0), false);
+            ImGui.BeginChild("Map", new Vector2(180, 0), false);
             _mapCanvas.DrawContent(HandleTopicInteraction2, out _, _selectedTopic);
             ImGui.EndChild();
             ImGui.PopStyleColor();

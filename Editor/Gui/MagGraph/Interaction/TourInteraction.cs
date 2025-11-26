@@ -6,6 +6,7 @@ using T3.Editor.Gui.Styling;
 using T3.Editor.Skills;
 using T3.Editor.UiModel;
 using T3.Editor.UiModel.ProjectHandling;
+using T3.Editor.UiModel.Selection;
 using SkillTraining = T3.Editor.Skills.Training.SkillTraining;
 
 namespace T3.Editor.Gui.MagGraph.Interaction;
@@ -19,7 +20,7 @@ internal static class TourInteraction
     {
         if (projectView == null || projectView.GraphView.Destroyed)
             return;
-        
+
         if (projectView.CompositionInstance == null)
             return;
 
@@ -32,12 +33,12 @@ internal static class TourInteraction
         SkillTraining.DrawLevelHeader();
 
         FormInputs.AddVerticalSpace(10);
-        
+
         var cursorPos2 = ImGui.GetCursorScreenPos();
-        ImGui.Indent(40 * T3Ui.UiScaleFactor- 5);
-        
+        ImGui.Indent(40 * T3Ui.UiScaleFactor - 5);
+
         var timeSinceInteraction = (float)(ImGui.GetTime() - _lastClickTime);
-        
+
         if (!_symbolTourProgress.TryGetValue(compositionUi.Symbol.Id, out var progressIndex))
         {
             progressIndex = 0;
@@ -54,83 +55,113 @@ internal static class TourInteraction
             }
 
             CustomComponents.TooltipForLastItem("Start tour");
+            ImGui.SameLine(0, 0);
+            ImGui.AlignTextToFramePadding();
+            CustomComponents.StylizedText("Restart tour...", Fonts.FontNormal, UiColors.TextMuted);
         }
         else
         {
             var dl = ImGui.GetWindowDrawList();
-            
-            FormInputs.AddVerticalSpace(10);
+
+            FormInputs.AddVerticalSpace(20);
             var point = compositionUi.TourPoints[progressIndex];
-            
 
             // Draw tip
             ImGui.SameLine(0, 4);
 
             if (!string.IsNullOrEmpty(point.Title))
             {
-                ImGui.PushTextWrapPos(ImGui.GetCursorPosX() + 350 * T3Ui.UiScaleFactor);
-                var typeWriterProgress = (timeSinceInteraction * 2f).Clamp(0, 1);
+                ImGui.PushFont(Fonts.FontLarge);
+                ImGui.PushTextWrapPos(ImGui.GetCursorPosX() + 450 * T3Ui.UiScaleFactor);
+                var typeWriterProgress = (timeSinceInteraction * 200f / (point.Title.Length + 1)).Clamp(0, 1);
                 var shortedText = StringUtils.SliceToProgress(point.Title, typeWriterProgress);
                 TextParagraphs(shortedText);
                 ImGui.PopTextWrapPos();
+                ImGui.PopFont();
             }
 
             // Draw progress
             var tourPointsCount = compositionUi.TourPoints.Count;
 
             var h = ImGui.GetFrameHeight();
-            cursorPos2 += new Vector2(0.9f,0.3f) * h;
-            
+            cursorPos2 += new Vector2(0.9f, 0.3f) * h;
+
             for (int dotIndex = 0; dotIndex < tourPointsCount; dotIndex++)
             {
-                var pos = cursorPos2 
+                var pos = cursorPos2
                           + new Vector2(0, 40 * T3Ui.UiScaleFactor * dotIndex / (float)tourPointsCount);
 
                 var isCurrent = dotIndex == progressIndex;
-                var radius = 3 + (isCurrent ? 3/(timeSinceInteraction * 2f + 1) :0);
-                
+                var radius = 3 + (isCurrent ? 3 / (timeSinceInteraction * 2f + 1) : 0);
+
                 var color = isCurrent ? UiColors.StatusActivated : UiColors.ForegroundFull.Fade(0.3f);
                 dl.AddCircleFilled(pos, radius, color, 16);
             }
 
             // Draw graph indicator...
-            if (compositionUi.ChildUis.TryGetValue(point.ChildId, out var child))
+            if (point.Style != TourPoint.Styles.Comment)
             {
-                if (_lastCompositionId != compositionUi.Symbol.Id)
+                if (compositionUi.ChildUis.TryGetValue(point.ChildId, out var child))
                 {
-                    _lastCompositionId = compositionUi.Symbol.Id;
-                    _dampedCanvasPos = child.PosOnCanvas;
-                }
-                else
-                {
-                    _dampedCanvasPos = Vector2.Lerp(_dampedCanvasPos, child.PosOnCanvas, 0.1f);
-                }
-                
-                var posOnScreen = projectView.GraphView.Canvas.TransformPosition(_dampedCanvasPos);
+                    if (_lastCompositionId != compositionUi.Symbol.Id)
+                    {
+                        _lastCompositionId = compositionUi.Symbol.Id;
+                        _dampedCanvasPos = child.PosOnCanvas;
+                    }
+                    else
+                    {
+                        _dampedCanvasPos = Vector2.Lerp(_dampedCanvasPos, child.PosOnCanvas, 0.1f);
+                    }
 
-                var fadeCount = 4;
-                var t = ImGui.GetTime();
+                    var posOnScreen = projectView.GraphView.Canvas.TransformPosition(_dampedCanvasPos);
 
-                
-                var dotRadius =  40 + (100 / (timeSinceInteraction * 0.5f + 1));
-                
-                for (int fadeIndex = 0; fadeIndex < fadeCount; fadeIndex++)
-                {
-                    var xx = (float)((t * 0.1f + fadeIndex / (float)fadeCount) % 1);
-                    xx = MathF.Pow(1 - xx, 2.5f);
-                    
-                    dl.AddCircleFilled(posOnScreen, (1 - xx) * dotRadius, UiColors.StatusActivated.Fade(0.3f * xx));
+                    var fadeCount = 4;
+                    var t = ImGui.GetTime();
+
+                    var dotRadius = 40 + (100 / (timeSinceInteraction * 0.5f + 1));
+
+                    for (int fadeIndex = 0; fadeIndex < fadeCount; fadeIndex++)
+                    {
+                        var xx = (float)((t * 0.1f + fadeIndex / (float)fadeCount) % 1);
+                        xx = MathF.Pow(1 - xx, 2.5f);
+
+                        dl.AddCircleFilled(posOnScreen, (1 - xx) * dotRadius, UiColors.StatusActivated.Fade(0.3f * xx));
+                    }
                 }
             }
 
+            FormInputs.AddVerticalSpace();
+
+            if (progressIndex > 0 &&
+                CustomComponents.TransparentIconButton(Icon.ChevronLeft, new Vector2(Fonts.FontLarge.FontSize + 7), CustomComponents.ButtonStates.Dimmed))
+            {
+                progressIndex--;
+                _symbolTourProgress[compositionUi.Symbol.Id] = progressIndex;
+                _lastClickTime = ImGui.GetTime();
+            }
+
+            ImGui.SameLine();
+
             ImGui.PushStyleColor(ImGuiCol.Button, Color.Transparent.Rgba);
             ImGui.PushStyleColor(ImGuiCol.Text, UiColors.StatusActivated.Rgba);
-            if (ImGui.Button("Continue"))
+
+            var buttonLabel = point.Style switch
+                                  {
+                                      TourPoint.Styles.Comment   => "Continue...",
+                                      TourPoint.Styles.TourPoint => "Okay...",
+                                      TourPoint.Styles.Tip       => "Got it!",
+                                      _                          => throw new ArgumentOutOfRangeException()
+                                  };
+
+            ImGui.PushFont(Fonts.FontLarge);
+            if (ImGui.Button(buttonLabel))
             {
                 progressIndex++;
                 _symbolTourProgress[compositionUi.Symbol.Id] = progressIndex;
                 _lastClickTime = ImGui.GetTime();
             }
+
+            ImGui.PopFont();
 
             ImGui.PopStyleColor(2);
         }
@@ -143,9 +174,9 @@ internal static class TourInteraction
         ImGui.BeginGroup();
         for (var i = 0; i < text.Length; i++)
         {
-            if (i + 1 >= text.Length || text[i] != '\n') 
+            if (i + 1 >= text.Length || text[i] != '\n')
                 continue;
-            
+
             var paragraph = text.Slice(start, i - start);
             ImGui.TextUnformatted(paragraph);
 
@@ -160,9 +191,10 @@ internal static class TourInteraction
             var paragraph = text.Slice(start);
             ImGui.TextUnformatted(paragraph);
         }
+
         ImGui.EndGroup();
     }
-    
+
     private static Vector2 _dampedCanvasPos;
     private static Guid _lastCompositionId;
     private static double _lastClickTime;

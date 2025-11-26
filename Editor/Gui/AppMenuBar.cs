@@ -5,6 +5,7 @@ using T3.Core.Resource;
 using T3.Core.Stats;
 using T3.Core.SystemUi;
 using T3.Core.Utils;
+using T3.Editor.Gui.Graph.Dialogs;
 using T3.Editor.Gui.Window;
 using T3.Editor.Gui.Input;
 using T3.Editor.Gui.Interaction;
@@ -282,6 +283,9 @@ internal static class AppMenuBar
 
             if (ImGui.BeginMenu("Development Tools"))
             {
+                if (ImGui.MenuItem("Tour Point Editor"))
+                    EditTourPointsPopup.ShowNextFrame();
+                
                 if (ImGui.MenuItem("Skill Map Editor"))
                     SkillMapEditor.ShowNextFrame();
                 

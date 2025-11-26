@@ -412,9 +412,10 @@ internal static partial class SkillTraining
 
         //ImGui.SameLine(0,10);
 
-        ImGui.PushFont(Fonts.FontLarge);
-        ImGui.TextUnformatted(level.Title);
-        ImGui.PopFont();
+        CustomComponents.StylizedText(level.Title, Fonts.FontLarge, UiColors.TextMuted);
+        // ImGui.PushFont(Fonts.FontLarge);
+        // ImGui.TextUnformatted(level.Title);
+        // ImGui.PopFont();
 
         ImGui.Unindent(indentation);
     }

@@ -118,11 +118,13 @@ internal static class EditTourPointsPopup
         return result;
     }
 
+    private static readonly Dictionary<int, float> _lastItemHeights = new();
+
     private static bool DrawItem(TourPoint tourPoint, int index)
     {
         var modified = false;
 
-        var isSelected = _selectedChildIds.Contains(tourPoint.ChildId);
+        var isSelected = _selectedChildIds.Contains(tourPoint.ChildId) && tourPoint.Style == TourPoint.Styles.TourPoint;
 
         ImGui.PushStyleColor(ImGuiCol.ChildBg, isSelected
                                                    ? Color.Mix(UiColors.BackgroundButton, UiColors.BackgroundActive, 0.1f).Rgba
@@ -130,7 +132,13 @@ internal static class EditTourPointsPopup
 
         ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 5);
         ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(5, 5)); // inner spacing
-        ImGui.BeginChild("item", new Vector2(-5, 100 * T3Ui.UiScaleFactor), true);
+
+        if (!_lastItemHeights.TryGetValue(index, out var height))
+        {
+            height = 0;
+        }
+        
+        ImGui.BeginChild("item", new Vector2(-5, height), true);
         {
             FormInputs.AddVerticalSpace(3);
             var padding = 10;
@@ -267,6 +275,10 @@ internal static class EditTourPointsPopup
             {
                 TourInteraction.SetProgressIndex(_compositionUi.Symbol.Id, index);
             }
+            
+            FormInputs.AddVerticalSpace();
+
+            _lastItemHeights[index] = ImGui.GetCursorPosY();
         }
         ImGui.EndChild();
         ImGui.PopStyleVar(2);
