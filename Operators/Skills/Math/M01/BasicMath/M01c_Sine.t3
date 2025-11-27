@@ -5,13 +5,7 @@
     {
       "Id": "3f18bcb0-0929-44f7-b948-a8413b0deec6"/*Time*/,
       "SymbolId": "b0d75f21-df33-460b-beab-d8c5e1f23e5e",
-      "InputValues": [
-        {
-          "Id": "e0f765f3-ac71-45c9-87a4-e9be3fa9a9a0"/*SpeedFactor*/,
-          "Type": "System.Single",
-          "Value": 10.0
-        }
-      ],
+      "InputValues": [],
       "Outputs": []
     },
     {
