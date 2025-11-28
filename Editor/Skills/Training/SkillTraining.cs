@@ -49,6 +49,20 @@ internal static partial class SkillTraining
         StartActiveLevel();
     }
 
+    public static void ReplayLevel(QuestLevel level)
+    {
+        if (_context.ActiveTopic == null || !_context.ActiveTopic.Levels.Contains(level))
+        {
+            Log.Warning($"Active topic doesn't contain {level}");
+            return;
+        }
+
+        
+        ExitPlayMode();
+        _context.ActiveLevel = level;
+        StartActiveLevel();
+    }
+
     private static bool _savedOriginalLayout;
 
     internal record UiState
@@ -178,7 +192,6 @@ internal static partial class SkillTraining
             SaveNewResult(SkillProgress.LevelResult.States.Completed);
             UpdateTopicStatesAndProgression(); 
             SkillProgressionPopup.Show();
-            //CompleteAndExitLevel();
         }
     }
 
@@ -247,6 +260,7 @@ internal static partial class SkillTraining
                 if (!_cache.ResultsForLevelId.TryGetValue(level.SymbolId, out var results))
                 {
                     topic.ProgressionState = QuestTopic.ProgressStates.NoResultsYet;
+                    someLevelsNotCompleted = true;
                     continue;
                 }
 
@@ -460,9 +474,24 @@ internal static partial class SkillTraining
         //ImGui.SameLine(0,10);
 
         CustomComponents.StylizedText(level.Title, Fonts.FontLarge, UiColors.TextMuted);
-        // ImGui.PushFont(Fonts.FontLarge);
-        // ImGui.TextUnformatted(level.Title);
-        // ImGui.PopFont();
+        if (_context.StateMachine.CurrentState == SkillTrainingStates.Completed && !SkillProgressionPopup.IsOpen)
+        {
+            var cursorPos = ImGui.GetCursorScreenPos();
+            var label = "Solved! Show Results...";
+            ImGui.PushFont(Fonts.FontLarge);
+            var labelSize = ImGui.CalcTextSize(label);
+            ImGui.SetCursorScreenPos(ImGui.GetWindowPos() + new Vector2(ImGui.GetWindowSize().X - labelSize.X-40, 20));
+            
+            //ImGui.SameLine(0,10);
+            ImGui.PushStyleColor(ImGuiCol.Button, UiColors.BackgroundActive.Rgba);
+            if (ImGui.Button(label))
+            {
+                SkillProgressionPopup.IsOpen = true;
+            }
+            ImGui.PopStyleColor();
+            ImGui.PopFont();
+            ImGui.SetCursorScreenPos(cursorPos);
+        }
 
         ImGui.Unindent(indentation);
     }

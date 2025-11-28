@@ -15,6 +15,7 @@ internal static class SkillProgressionPopup
     internal static void Show()
     {
         ImGui.OpenPopup(ProgressionPopupId);
+        IsOpen = true;
         StarShowerEffect.Reset();
     }
 
@@ -31,10 +32,15 @@ internal static class SkillProgressionPopup
         if (!SkillTraining.TryGetActiveTopicAndLevel(out var topic, out var activeLevel))
             return;
 
-        bool open = true;
+        //bool open = true;
+        var open = IsOpen;
+        if (IsOpen)
+        {
+            ImGui.OpenPopup(ProgressionPopupId);
+        }
 
         ImGui.PushStyleColor(ImGuiCol.PopupBg, Color.Mix(UiColors.BackgroundFull, UiColors.ForegroundFull, 0.06f).Rgba);
-        if (ImGui.BeginPopupModal("ProgressionPopup", ref open,
+        if (ImGui.BeginPopupModal("ProgressionPopup", ref IsOpen,
                                   ImGuiWindowFlags.NoResize
                                   | ImGuiWindowFlags.NoMove
                                   | ImGuiWindowFlags.NoTitleBar))
@@ -48,7 +54,12 @@ internal static class SkillProgressionPopup
                                            activeLevel,
                                            SkillProgressionUi.ContentModes.PopUp,
                                            SkillTraining.CompleteAndProgressToNextLevel);
-
+            
+            if (IsClickedOutsideWindow())
+            {
+                IsOpen = false;
+            }
+            
             ImGui.EndPopup();
             StarShowerEffect.DrawAndUpdate();
         }
@@ -56,5 +67,26 @@ internal static class SkillProgressionPopup
         ImGui.PopStyleColor();
     }
 
+    private static bool IsClickedOutsideWindow()
+    {
+        if(!ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+            return false;
+        
+        var winPos  = ImGui.GetWindowPos();
+        var winSize = ImGui.GetWindowSize();
+        
+        var mouse = ImGui.GetMousePos();
+
+        var inside =
+            mouse.X >= winPos.X &&
+            mouse.X <= winPos.X + winSize.X &&
+            mouse.Y >= winPos.Y &&
+            mouse.Y <= winPos.Y + winSize.Y;
+
+        return !inside;
+    }
+    
+
     private const string ProgressionPopupId = "ProgressionPopup";
+    public static bool IsOpen;
 }

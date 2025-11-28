@@ -122,6 +122,7 @@ internal static class SkillProgressionUi
                 if (mode == ContentModes.PopUp)
                 {
                     ImGui.PushStyleColor(ImGuiCol.Button, Color.Transparent.Rgba);
+                    ImGui.PushStyleColor(ImGuiCol.Text, UiColors.TextMuted.Rgba);
                     if (ImGui.Button("Back to Hub", Vector2.Zero))
                     {
                         SkillTraining.SaveNewResult(SkillProgress.LevelResult.States.Skipped);
@@ -129,6 +130,15 @@ internal static class SkillProgressionUi
                     }
 
                     ImGui.SameLine();
+
+                    if (previousLevel != null && ImGui.Button("Replay", Vector2.Zero))
+                    {
+                        SkillTraining.ReplayLevel(previousLevel);
+                        //SkillTraining.SaveNewResult(SkillProgress.LevelResult.States.Skipped);
+                        //SkillTraining.ExitPlayMode();
+                    }
+                    //ImGui.PopStyleColor();
+                    
                 }
 
                 ImGui.SameLine(ImGui.GetWindowWidth() - totalW - 20);
@@ -216,11 +226,7 @@ internal static class SkillProgressionUi
                 
                 ImGui.SameLine(0,10);
                 
-                if (ImGui.Button("Replay last", Vector2.Zero))
-                {
-                    SkillTraining.SaveNewResult(SkillProgress.LevelResult.States.Skipped);
-                    SkillTraining.ExitPlayMode();
-                }
+
 
                 ImGui.PopStyleColor();
             }

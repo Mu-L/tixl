@@ -14,7 +14,7 @@
     },
     {
       "Id": "c09a529a-dfe2-4bf8-86ce-369aeadbee4a"/*Goal*/,
-      "DefaultValue": 0.0
+      "DefaultValue": -1337.0
     },
     {
       "Id": "fe12fa62-9207-4a6a-bbb3-4d57218094bf"/*DisplayValueRange*/,
