@@ -15,7 +15,7 @@ namespace T3.Editor.Gui.UiHelpers;
 /// <summary>
 /// Saves view layout, currently open node and other user settings 
 /// </summary>
-///  todo - make internal, make extendable by external packaages
+///  todo - make internal, make extendable by external packages
 public sealed class UserSettings : Settings<UserSettings.ConfigData>
 {
     internal UserSettings(bool saveOnQuit) : base("userSettings.json", saveOnQuit: saveOnQuit)
@@ -47,6 +47,7 @@ public sealed class UserSettings : Settings<UserSettings.ConfigData>
         // UI-Elements
         public bool ShowThumbnails = true;
         public bool ShowMainMenu = true;
+        public bool EnableMainMenuHoverPeek = true;
         public bool ShowTitleAndDescription = true;
         public bool ShowToolbar = true;
         public bool ShowTimeline = true;
@@ -109,6 +110,8 @@ public sealed class UserSettings : Settings<UserSettings.ConfigData>
         public bool VariationHoverPreview = true;
 
         public bool EditorHoverPreview = true;
+
+        public bool ShowSkillQuestInHub = true;
 
         // Asset Lib
         public bool SyncWithOperatorSelection = true;

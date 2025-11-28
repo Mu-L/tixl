@@ -1,0 +1,92 @@
+﻿using ImGuiNET;
+using T3.Editor.Gui;
+using T3.Editor.Gui.Styling;
+using T3.Editor.Skills.Training;
+using Color = T3.Core.DataTypes.Vector.Color;
+using Vector2 = System.Numerics.Vector2;
+
+namespace T3.Editor.Skills.Ui;
+
+/// <summary>
+/// A dialog that is shown after level completion.
+/// </summary>
+internal static class SkillProgressionPopup
+{
+    internal static void Show()
+    {
+        ImGui.OpenPopup(ProgressionPopupId);
+        IsOpen = true;
+        StarShowerEffect.Reset();
+    }
+
+    internal static void Draw()
+    {
+        var popUpSize = new Vector2(700, 260) * T3Ui.UiScaleFactor;
+
+        // Center the popup in the main viewport
+        var vp = ImGui.GetMainViewport();
+        var pos = vp.Pos + (vp.Size - popUpSize) * 0.5f;
+        ImGui.SetNextWindowSize(popUpSize, ImGuiCond.Always);
+        ImGui.SetNextWindowPos(pos);
+
+        if (!SkillTraining.TryGetActiveTopicAndLevel(out var topic, out var activeLevel))
+            return;
+
+        //bool open = true;
+        var open = IsOpen;
+        if (IsOpen)
+        {
+            ImGui.OpenPopup(ProgressionPopupId);
+        }
+
+        ImGui.PushStyleColor(ImGuiCol.PopupBg, Color.Mix(UiColors.BackgroundFull, UiColors.ForegroundFull, 0.06f).Rgba);
+        if (ImGui.BeginPopupModal("ProgressionPopup", ref IsOpen,
+                                  ImGuiWindowFlags.NoResize
+                                  | ImGuiWindowFlags.NoMove
+                                  | ImGuiWindowFlags.NoTitleBar))
+        {
+            // Fake border to separate from background...
+            var dl = ImGui.GetWindowDrawList();
+            var p = ImGui.GetCursorScreenPos();
+            dl.AddRect(p, p + ImGui.GetWindowSize(), UiColors.BackgroundFull, 8, ImDrawFlags.None, 5);
+
+            SkillProgressionUi.DrawContent(topic,
+                                           activeLevel,
+                                           SkillProgressionUi.ContentModes.PopUp,
+                                           SkillTraining.CompleteAndProgressToNextLevel);
+            
+            if (IsClickedOutsideWindow())
+            {
+                IsOpen = false;
+            }
+            
+            ImGui.EndPopup();
+            StarShowerEffect.DrawAndUpdate();
+        }
+
+        ImGui.PopStyleColor();
+    }
+
+    private static bool IsClickedOutsideWindow()
+    {
+        if(!ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+            return false;
+        
+        var winPos  = ImGui.GetWindowPos();
+        var winSize = ImGui.GetWindowSize();
+        
+        var mouse = ImGui.GetMousePos();
+
+        var inside =
+            mouse.X >= winPos.X &&
+            mouse.X <= winPos.X + winSize.X &&
+            mouse.Y >= winPos.Y &&
+            mouse.Y <= winPos.Y + winSize.Y;
+
+        return !inside;
+    }
+    
+
+    private const string ProgressionPopupId = "ProgressionPopup";
+    public static bool IsOpen;
+}

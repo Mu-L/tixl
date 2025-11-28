@@ -4,6 +4,7 @@ using T3.Core.Animation;
 using T3.Core.DataTypes;
 using T3.Core.Operator;
 using T3.Core.Operator.Interfaces;
+using T3.Editor.Gui.Interaction;
 using T3.Editor.Gui.Interaction.Camera;
 using T3.Editor.Gui.Interaction.TransformGizmos;
 using T3.Editor.Gui.Styling;
@@ -73,7 +74,7 @@ internal sealed class CameraSelectionHandling
 
     private NodeSelection? NodeSelection => _nodeSelection ?? ProjectView.Focused?.NodeSelection;
 
-    public void Update(Instance? drawnInstance, Type drawnType, bool preventInteractions = false)
+    public void Update(Instance? drawnInstance, Type? drawnType, bool preventInteractions = false)
     {
         var currentPlayback = _getPlayback();
         var timeInBars = currentPlayback.TimeInBars;
@@ -361,7 +362,7 @@ internal sealed class CameraSelectionHandling
                             _lastControlMode = _controlMode;
                             _controlMode = ControlModes.PickedACamera;
                             _pickedCameraId = cameraInstance.SymbolChildId;
-                            T3Ui.SelectAndCenterChildIdInView(symbolChild.Id);
+                            GraphCanvasUtils.SelectAndCenterChildIdInView(symbolChild.Id);
                         }
 
                         if (ImGui.IsItemHovered() && NodeSelection != null)

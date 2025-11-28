@@ -9,7 +9,7 @@ using T3.Editor.SystemUi;
 using T3.Editor.UiModel;
 using GraphUtils = T3.Editor.UiModel.Helpers.GraphUtils;
 
-namespace T3.Editor.Gui.Graph.Dialogs;
+namespace T3.Editor.Gui.Dialogs;
 
 internal sealed class NewProjectDialog : ModalDialog
 {
@@ -19,7 +19,6 @@ internal sealed class NewProjectDialog : ModalDialog
         _newProjectName = "MyProject";
         _userName = UserSettings.Config.UserName;
         _newSubNamespace = "";
-        _needsAutoFocus = true;
     }
         
     public void Draw()
@@ -37,11 +36,10 @@ internal sealed class NewProjectDialog : ModalDialog
                 namespaceWarningText = "Namespace must be a valid and unique C# namespace";
             }
 
-            _needsAutoFocus = false;
             FormInputs.AddStringInput("Namespace", ref _newSubNamespace,"(Optional)", 
                                       warning: namespaceWarningText, 
                                       tooltip:"An additional namespace withing your user area that can help to further group your projects.",
-                                      autoFocus: _needsAutoFocus);
+                                      autoFocus: ImGui.IsWindowAppearing());
                 
             // ProjectName
             var warning = string.Empty;
@@ -72,7 +70,7 @@ internal sealed class NewProjectDialog : ModalDialog
             
             FormInputs.AddStringInput("Name", ref _newProjectName, "(mandatory)", warning, 
                                       "Is used to identify your project. Must not contain spaces or special characters.",
-                                      autoFocus: true);
+                                      autoFocus: ImGui.IsWindowAppearing());
 
             var allValid = namespaceCorrect && nameCorrect;
 
@@ -234,5 +232,4 @@ internal sealed class NewProjectDialog : ModalDialog
     private string _newSubNamespace = string.Empty;
     private string _userName = string.Empty;
     private bool _shareResources = true;
-    private bool _needsAutoFocus;
 }

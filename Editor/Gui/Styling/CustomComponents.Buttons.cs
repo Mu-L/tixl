@@ -47,12 +47,15 @@ internal static partial class CustomComponents
                                             Icon iconOn,
                                             ButtonStates stateIfOn = ButtonStates.Activated,
                                             ButtonStates stateIfOff = ButtonStates.Activated,
-                                            bool isEnabled = true)
+                                            bool isEnabled = true,
+                                            bool noBackground= false)
     {
         var state = !isEnabled ? ButtonStates.Disabled
                     : isOn ? stateIfOn : stateIfOff;
 
-        var clicked = IconButton(isOn ? iconOn : iconOff, Vector2.Zero, state);
+        var clicked = noBackground 
+                          ? TransparentIconButton(isOn ? iconOn : iconOff, Vector2.Zero, state) 
+                          : IconButton(isOn ? iconOn : iconOff, Vector2.Zero, state);
         
         if (clicked && isEnabled)
             isOn = !isOn;
@@ -100,6 +103,14 @@ internal static partial class CustomComponents
         return modified;
     }
 
+    public static bool TransparentIconButton(Icon icon, Vector2 size, ButtonStates state = ButtonStates.Normal)
+    {
+        ImGui.PushStyleColor(ImGuiCol.Button, Color.Transparent.Rgba);
+        var result = IconButton(icon, size, state);
+        ImGui.PopStyleColor();
+        return result;
+    }
+    
     public static bool IconButton(Icon icon, Vector2 size, ButtonStates state = ButtonStates.Normal)
     {
         if (size == Vector2.Zero)

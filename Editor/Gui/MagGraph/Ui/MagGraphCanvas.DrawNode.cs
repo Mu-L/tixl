@@ -8,7 +8,7 @@ using T3.Core.Operator.Slots;
 using T3.Core.Resource;
 using T3.Core.Utils;
 using T3.Editor.Gui.OpUis;
-using T3.Editor.Gui.Graph;
+using T3.Editor.Gui;
 using T3.Editor.Gui.MagGraph.Interaction;
 using T3.Editor.Gui.MagGraph.Model;
 using T3.Editor.Gui.MagGraph.States;
@@ -27,6 +27,9 @@ internal sealed partial class MagGraphView
             return;
 
         if (!IsRectVisible(item.Area))
+            return;
+
+        if (item.ChildUi != null && item.ChildUi.CollapsedIntoAnnotationFrameId != Guid.Empty)
             return;
 
         var idleFadeFactor = 1f;
@@ -773,7 +776,13 @@ internal sealed partial class MagGraphView
                     if (isPotentialConnectionEndDropTarget && item != _context.ActiveItem)
                     {
                         fillColor = ColorVariations.Highlight.Apply(type2UiProperties.Color).Fade(Blink);
-                        InputSnapper.RegisterAsPotentialTargetInput(item, center, inputAnchor.SlotId);
+                        var mousePos = ImGui.GetMousePos();
+                        var overlapsOp = new ImRect(pMin, pMax).Contains(mousePos);
+                        if (!overlapsOp)
+                        {
+                            InputSnapper.RegisterAsPotentialTargetInput(item, center, inputAnchor.SlotId);
+                        } 
+                        
                     }
                     else if (inputAnchor.InputLine.ConnectionIn != null)
                     {

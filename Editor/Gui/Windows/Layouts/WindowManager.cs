@@ -1,6 +1,6 @@
 #nullable enable
 using ImGuiNET;
-using T3.Editor.Gui.Graph.Window;
+using T3.Editor.Gui.Window;
 using T3.Editor.Gui.Interaction;
 using T3.Editor.Gui.Interaction.Keyboard;
 using T3.Editor.Gui.UiHelpers;
@@ -78,7 +78,7 @@ internal static partial class WindowManager
 
     private static void ReApplyLayout()
     {
-        LayoutHandling.LoadAndApplyLayoutOrFocusMode(UserSettings.Config.WindowLayoutIndex);
+        LayoutHandling.LoadAndApplyLayoutOrFocusMode((LayoutHandling.Layouts)UserSettings.Config.WindowLayoutIndex);
     }
 
     internal static IEnumerable<Window> GetAllWindows()

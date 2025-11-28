@@ -135,7 +135,7 @@ internal sealed class RenderWindow : Window
         CustomComponents.TooltipForLastItem(q.Description);
 
         FormInputs.AddFilePicker("File name",
-                                 ref UserSettings.Config.RenderVideoFilePath,
+                                 ref UserSettings.Config.RenderVideoFilePath!,
                                  ".\\Render\\Title-v01.mp4 ",
                                  null,
                                  "Using v01 in the file name will enable auto incrementation and don't forget the .mp4 extension, I'm serious.",
@@ -171,7 +171,7 @@ internal sealed class RenderWindow : Window
         }
 
         FormInputs.AddFilePicker("Output Folder",
-                                 ref UserSettings.Config.RenderSequenceFilePath,
+                                 ref UserSettings.Config.RenderSequenceFilePath!,
                                  ".\\ImageSequence ",
                                  null,
                                  "Specify the folder where the image sequence will be saved.",

@@ -48,6 +48,22 @@ internal static class Icons
                           color);
     }
 
+    public static void DrawIconAtScreenPosition(Icon icon,
+                                                Vector2 screenPos,
+                                                Vector2 size,
+                                                ImDrawListPtr drawList,
+                                                Color color)
+    {
+        GetGlyphDefinition(icon, out var uvRange, out _);
+        drawList.AddImage(ImGui.GetIO().Fonts.TexID,
+                          screenPos,
+                          screenPos + size,
+                          uvRange.Min,
+                          uvRange.Max,
+                          color);
+    }
+    
+    
     public static void DrawIconOnLastItem(Icon icon, Color color, float alignment = 0.5f)
     {
         var pos = ImGui.GetItemRectMin();
@@ -257,7 +273,11 @@ internal static class Icons
             new(Icon.RotateCounterClockwise, slotIndex: 125),
             new(Icon.RotateClockwise, slotIndex: 126),
             new(Icon.Stack, slotIndex: 127),
-            new(Icon.Usb, slotIndex: 128),
+            new(Icon.Exit, slotIndex: 128),
+            new(Icon.Star, slotIndex: 129),
+            new(Icon.Locked, slotIndex: 130),
+            new(Icon.Unlocked, slotIndex: 131),
+            new(Icon.Usb, slotIndex: 132),
         };
 
     public static readonly string IconAtlasPath = Path.Combine(SharedResources.Directory, @"images\editor\t3-icons.png");
@@ -400,5 +420,9 @@ public enum Icon
     RenderAnimation,
     TixlLogo,
     OpenExternally,
-    Usb
+    Exit,
+    Star,
+    Locked,
+    Unlocked,
+    Usb,
 }

@@ -5,7 +5,8 @@ using T3.Core.Resource;
 using T3.Core.Stats;
 using T3.Core.SystemUi;
 using T3.Core.Utils;
-using T3.Editor.Gui.Graph.Window;
+using T3.Editor.Gui.Graph.Dialogs;
+using T3.Editor.Gui.Window;
 using T3.Editor.Gui.Input;
 using T3.Editor.Gui.Interaction;
 using T3.Editor.Gui.Interaction.Keyboard;
@@ -14,6 +15,8 @@ using T3.Editor.Gui.UiHelpers;
 using T3.Editor.Gui.UiHelpers.Wiki;
 using T3.Editor.Gui.Windows;
 using T3.Editor.Gui.Windows.Layouts;
+using T3.Editor.Skills.Data;
+using T3.Editor.Skills.Ui;
 using T3.Editor.UiModel;
 using T3.Editor.UiModel.Commands;
 using T3.Editor.UiModel.ProjectHandling;
@@ -280,6 +283,14 @@ internal static class AppMenuBar
 
             if (ImGui.BeginMenu("Development Tools"))
             {
+                if (ImGui.MenuItem("Skill Map Editor"))
+                    SkillMapEditor.ShowNextFrame();
+                
+                if (ImGui.MenuItem("Tour Point Editor"))
+                    EditTourPointsPopup.ShowNextFrame();
+                
+                ImGui.Separator();
+                
                 if (ImGui.BeginMenu("Clear shader cache"))
                 {
                     if (ImGui.MenuItem("Editor only"))
@@ -307,6 +318,8 @@ internal static class AppMenuBar
 
                 if (ImGui.BeginMenu("Debug"))
                 {
+
+                    
                     if (ImGui.MenuItem("ImGUI Demo", "", WindowManager.DemoWindowVisible))
                         WindowManager.DemoWindowVisible = !WindowManager.DemoWindowVisible;
 
@@ -377,7 +390,7 @@ internal static class AppMenuBar
             if (ImGui.MenuItem("Toggle All", UserActions.ToggleAllUiElements.ListShortcuts(), false,
                                !T3Ui.IsCurrentlySaving))
             {
-                T3Ui.ToggleAllUiElements();
+                UiConfig.ToggleAllUiElements();
             }
 
             ImGui.Separator();
@@ -389,7 +402,7 @@ internal static class AppMenuBar
 
             if (ImGui.MenuItem("Focus Mode", UserActions.ToggleFocusMode.ListShortcuts(), UserSettings.Config.FocusMode))
             {
-                T3Ui.ToggleFocusMode();
+                UiConfig.ToggleFocusMode();
             }
 
             ImGui.EndMenu();
