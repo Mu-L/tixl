@@ -1,4 +1,4 @@
-namespace Skills.Math.M01.BasicMath;
+namespace Skills.Math.M01_BasicMath;
 
 [Guid("a85bbd92-afd8-488f-a52a-247ceda950ca")]
 internal sealed class M01e_SinModulo : Instance<M01e_SinModulo>

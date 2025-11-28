@@ -20,7 +20,7 @@
         "ed9927b5-fae3-4e6f-a4eb-df68e09bf0db",
         "7f093d8e-9d75-46a0-ac61-4a829b70358d"
       ],
-      "Namespace": "Skills.T001_Welcome",
+      "Namespace": "Skills.Basics_B01_Welcome",
       "TopicType": "Image",
       "Requirement": "None"
     },
@@ -143,7 +143,7 @@
         "f15f35fe-a482-45b2-a909-4e88f529e71e",
         "71d6f1eb-7b02-4635-b840-45082fb9b102"
       ],
-      "Namespace": "Skills.Math.M01.BasicMath",
+      "Namespace": "Skills.Math.M01_BasicMath",
       "TopicType": "Numbers",
       "Requirement": "AllInputPaths"
     },
@@ -215,7 +215,7 @@
     {
       "Id": "ed9927b5-fae3-4e6f-a4eb-df68e09bf0db",
       "Title": "Basic Shapes",
-      "Description": "Blob",
+      "Description": "A short introduction to the basic concepts of images in TiXL.",
       "MapCoordinate": {
         "X": 7.0,
         "Y": -11.0
@@ -227,7 +227,7 @@
         "8a27a6a7-c8c7-4012-916f-f7ecdfebae8e",
         "d400abe2-0113-4793-a289-da3515646082"
       ],
-      "Namespace": "Skills.T002_BasicShapes",
+      "Namespace": "Skills.Image.I01_BasicShapes",
       "TopicType": "Image",
       "Requirement": "AllInputPaths"
     },
