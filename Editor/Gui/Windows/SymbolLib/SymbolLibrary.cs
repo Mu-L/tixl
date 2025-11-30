@@ -263,13 +263,16 @@ internal sealed class SymbolLibrary : Window
 
     internal static void DrawSymbolItem(Symbol symbol)
     {
+        if (!symbol.TryGetSymbolUi(out var symbolUi))
+            return;
+        
         ImGui.PushID(symbol.Id.GetHashCode());
         {
             var color = symbol.OutputDefinitions.Count > 0
                             ? TypeUiRegistry.GetPropertiesForType(symbol.OutputDefinitions[0]?.ValueType).Color
                             : UiColors.Gray;
-
-            var symbolUi = symbol.GetSymbolUi();
+            
+            //var symbolUi = symbol.GetSymbolUi();
 
             // var state = ParameterWindow.GetButtonStatesForSymbolTags(symbolUi.Tags);
             // if (CustomComponents.IconButton(Icon.Bookmark, Vector2.Zero, state))
