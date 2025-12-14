@@ -130,8 +130,8 @@
     {
       "InputId": "c6bdbb07-6996-4e5b-a058-37c9cbeca6fe"/*Reset*/,
       "Position": {
-        "X": -345.84326,
-        "Y": -510.23334
+        "X": -614.3496,
+        "Y": -355.09625
       },
       "Description": "Clears all emitted points.\n\nTip: You can connect [HasTimeChanged] to clean up on rewind or looping. "
     },
