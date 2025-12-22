@@ -420,7 +420,7 @@
     },
     {
       "Id": "8a27a6a7-c8c7-4012-916f-f7ecdfebae8e",
-      "Title": "Drawing Gradients",
+      "Title": "Gradients",
       "Description": "",
       "MapCoordinate": {
         "X": 7.0,
@@ -431,7 +431,7 @@
         "6c3dff36-9aee-4849-bf0b-0d2a13d57956",
         "a096e1b9-3a73-4271-8f4e-96ed5855b112"
       ],
-      "Namespace": null,
+      "Namespace": "Skills.Image.I02_Gradients",
       "TopicType": "Image",
       "Requirement": "AllInputPaths"
     },
@@ -1699,7 +1699,7 @@
       "Title": "Post and Glow",
       "Description": "",
       "MapCoordinate": {
-        "X": 0.0,
+        "X": 3.0,
         "Y": 0.0
       },
       "ZoneId": "717505b4-0c6e-4708-85d8-54e202f9bbdf",
@@ -1801,32 +1801,30 @@
     },
     {
       "Id": "10d851f2-770f-4cce-a707-8dae8f0e0d6b",
-      "Title": "BasicShapes",
+      "Title": "???",
       "Description": "",
       "MapCoordinate": {
-        "X": 0.0,
-        "Y": 0.0
+        "X": 12.0,
+        "Y": -1.0
       },
       "ZoneId": "717505b4-0c6e-4708-85d8-54e202f9bbdf",
-      "UnlocksTopics": [
-        "6493fa07-2741-4712-b02f-e3f9e795b658"
-      ],
-      "Namespace": "Skills.T002_BasicShapes",
+      "UnlocksTopics": [],
+      "Namespace": "",
       "TopicType": "Image",
       "Requirement": "None"
     },
     {
       "Id": "1bbfc1bc-ea24-40f8-8f6f-1b9ff3be5c3f",
-      "Title": "BasicMath",
+      "Title": "???",
       "Description": "",
       "MapCoordinate": {
-        "X": 0.0,
+        "X": 11.0,
         "Y": 0.0
       },
       "ZoneId": "717505b4-0c6e-4708-85d8-54e202f9bbdf",
       "UnlocksTopics": [],
       "Namespace": "Skills.Math.M01.BasicMath",
-      "TopicType": "Image",
+      "TopicType": "Numbers",
       "Requirement": "None"
     }
   ]
