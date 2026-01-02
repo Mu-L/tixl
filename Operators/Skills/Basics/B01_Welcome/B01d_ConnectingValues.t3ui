@@ -88,8 +88,6 @@
     },
     {
       "Id": "a8d5aa9b-41e7-4b1c-81e8-ba7d409c9d25",
-      "ChildId": "de17e3f3-f79c-4648-9689-27d7187dc711",
-      "InputId": "202340b4-0629-40a1-9399-0cda047df116",
       "Description": "Static values are fine, but animation is better.\nThe Rotate parameter looks like a good candidate."
     },
     {
