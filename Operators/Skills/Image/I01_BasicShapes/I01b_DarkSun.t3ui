@@ -1,6 +1,6 @@
 {
-  "Id": "40f7a388-3125-458c-9b57-e2daeea60b9f"/*I01a_DarkSun*/,
-  "Description": "The Dark Sun",
+  "Id": "40f7a388-3125-458c-9b57-e2daeea60b9f"/*I01b_DarkSun*/,
+  "Description": "Stacking",
   "InputUis": [],
   "SymbolChildUis": [
     {
@@ -37,22 +37,22 @@
     {
       "ChildId": "662d9d74-3352-4afd-b1bc-8be790716b5c"/*Blob*/,
       "Position": {
-        "X": 1359.1396,
-        "Y": 1856.7416
+        "X": 1329.1313,
+        "Y": 1847.9598
       }
     },
     {
       "ChildId": "69e01607-0a9d-4cee-b7fe-ca9015a18cb4"/*Blob*/,
       "Position": {
-        "X": 1359.1394,
-        "Y": 1794.1326
+        "X": 1329.1313,
+        "Y": 1778.8348
       }
     },
     {
       "ChildId": "a87f1a1a-2023-4380-9f45-5a699e6487f8"/*Blob*/,
       "Position": {
-        "X": 1359.1395,
-        "Y": 1924.6885
+        "X": 1329.1312,
+        "Y": 1911.3973
       }
     }
   ],
@@ -88,8 +88,22 @@
   ],
   "TourPoints": [
     {
-      "Id": "b1e55f1e-e710-4fba-9992-edaaf0711a85",
-      "Description": "This tour is still under construction."
+      "Id": "bec805ac-a242-42ee-b876-de6682c30e5f",
+      "Description": "Many image operators also have an image input.\nThis is indicated by the dark purple triangles on the left and on the top."
+    },
+    {
+      "Id": "9b4fc4f3-c59a-47bc-922f-ec87d24db52e",
+      "Description": "These operators can be connected or \"stacked\", so that the second operator is rendered onto the connected on."
+    },
+    {
+      "Id": "eb80e170-5efc-4981-af75-61be7c689dea",
+      "Description": "Stack these ops in the right order to reproduce the example below.",
+      "Style": "CallToAction"
+    },
+    {
+      "Id": "e10afd03-f039-4bb7-af03-743ccbf4d958",
+      "Description": "You can rearrange the ops in a snapped stack to change the order.",
+      "Style": "Tip"
     }
   ]
 }

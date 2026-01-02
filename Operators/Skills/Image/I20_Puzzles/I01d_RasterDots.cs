@@ -1,4 +1,4 @@
-namespace Skills.Image.I01_BasicShapes;
+namespace Skills.Image.I20_Puzzles;
 
 [Guid("a91e8394-db72-4fcb-8cd6-0676ada49848")]
 internal sealed class I01d_RasterDots : Instance<I01d_RasterDots>

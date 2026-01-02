@@ -1,6 +1,6 @@
 {
   "Id": "b1cb8864-0d51-4b7f-96eb-4c6267d4b216"/*ImageQuiz*/,
-  "Description": "LinearGradient: Chain Overlay",
+  "Description": "Stacking",
   "InputUis": [
     {
       "InputId": "629ec47f-64d7-4c05-a5b1-29fe9303c8eb"/*DoNotChange*/,
@@ -72,17 +72,6 @@
         "X": 324.6157,
         "Y": -161.3143
       }
-    }
-  ],
-  "TourPoints": [
-    {
-      "Id": "04549c03-e493-4246-b96b-5c08231ef4e9",
-      "Description": "Like most image operators, [LinearGradient] can be chained to overlay an existing image.\nWith Normal blend mode, the original image is fully covered.\nUse opacity in the gradient’s color steps to let the image show through."
-    },
-    {
-      "Id": "a801ce30-80e9-49a9-88a7-47e808e1b2aa",
-      "Description": "Adjust the opacity of the gradient’s color steps to complete the challenge.",
-      "Style": "CallToAction"
     }
   ]
 }

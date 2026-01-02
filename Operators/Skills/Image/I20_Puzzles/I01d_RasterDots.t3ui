@@ -89,14 +89,11 @@
   "TourPoints": [
     {
       "Id": "247d0bee-fd07-40f8-860c-571a6d37d3d2",
-      "ChildId": "00000000-0000-0000-0000-000000000000",
-      "Title": "TBD"
+      "Description": "TBD"
     },
     {
       "Id": "fa6c11b6-42b0-4877-88cf-feb4584096ad",
-      "ChildId": "00000000-0000-0000-0000-000000000000",
-      "Title": "TBD",
-      "Style": "TourPoint"
+      "Description": "TBD"
     }
   ]
 }
