@@ -70,8 +70,8 @@ internal sealed class RenderWindow : Window
         {
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 4);
             DrawRenderSummary();
-            ImGui.EndChild();
         }
+        ImGui.EndChild();
         
         ImGui.PopStyleVar();
         ImGui.PopStyleColor();
