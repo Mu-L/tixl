@@ -197,6 +197,7 @@ internal static class Program
         }
 
         SymbolAnalysis.UpdateSymbolUsageCounts();
+        ConformAssetPaths.ConformAllPaths();
             
         UiContentContentDrawer.InitializeScaling();
         UiContentUpdate.SetupResourcesAndFontsWithScaling();
