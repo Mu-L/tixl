@@ -22,9 +22,11 @@ public abstract partial class ShaderCompiler
 
         foreach (var include in includes)
         {
-            if (!ResourceManager.TryResolveUri(include, includeDirectories, out _, out _))
+            //TODO: This is an ugly work around to get it running.
+            var includeInLib = "Lib:shaders/" + include;
+            if (!ResourceManager.TryResolveUri(includeInLib, includeDirectories, out _, out _))
             {
-                reason = $"Can't find include file: {include}";
+                reason = $"Can't find include file: {includeInLib}";
                 shader = null;
                 return false;
             }
@@ -110,8 +112,8 @@ public abstract partial class ShaderCompiler
     /// <summary>
     /// A simple method to prepare <see cref="ShaderCompilationArgs"/> before calling the actual shader compilation.
     /// </summary>
-    internal static bool TryPrepareSourceFile(ShaderCompilationFileArgs fileArgs,
-                                              out string errorMessage, out ShaderCompilationArgs args)
+    private static bool TryPrepareSourceFile(ShaderCompilationFileArgs fileArgs,
+                                             out string errorMessage, out ShaderCompilationArgs args)
     {
         var fileResource = fileArgs.FileResource;
         var file = fileResource.FileInfo;
@@ -161,9 +163,20 @@ public abstract partial class ShaderCompiler
                                  .Select(x => x[1]);
     }
 
-    internal record struct ShaderCompilationFileArgs(FileResource FileResource, string EntryPoint, IResourceConsumer? Owner, byte[]? OldBytecode);
-    public record struct ShaderCompilationArgs(string SourceCode, string EntryPoint, IResourceConsumer Owner, string Name, byte[]? OldBytecode);
+    internal record struct ShaderCompilationFileArgs(
+        FileResource FileResource, 
+        string EntryPoint, 
+        IResourceConsumer? Owner, 
+        byte[]? OldBytecode);
+    
+    public record struct ShaderCompilationArgs(
+        string SourceCode, 
+        string EntryPoint, 
+        IResourceConsumer Owner, 
+        string Name, 
+        byte[]? OldBytecode);
 
+    
     public sealed class ShaderResourcePackage : IResourcePackage
     {
         public string DisplayName => ResourcesFolder;
@@ -174,7 +187,7 @@ public abstract partial class ShaderCompiler
         public bool IsReadOnly => true;
         public IReadOnlyCollection<DependencyCounter> Dependencies => _resourceConsumer?.Package?.Dependencies ?? Array.Empty<DependencyCounter>();
         public IReadOnlyList<IResourcePackage> AvailableResourcePackages { get; }
-        private readonly IResourceConsumer? _resourceConsumer;
+        private readonly IResourceConsumer? _resourceConsumer = null;
 
         public ShaderResourcePackage(FileInfo shaderFile)
         {

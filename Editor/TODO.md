@@ -32,6 +32,23 @@
 - [ ] Complete import T3-project window?
 
 
+# Clean up Asset-Paths
+- [x] Implement auto fix methods
+- [x] Test for Lib and example
+- [x] Sort SharedResources -> Lib/ and Examples/
+- [x] Write new resource-paths to all symbols
+- [ ] Test File drop
+- [ ] Test Asset Library
+- [ ] Fix startup warnings
+- [x] Simplify resource uri resolve method
+- [.] Run tests
+- [ ] Check .\Lib\Resources\shaders\points\sim\SimSamplePointAttributes.hlsl
+- [ ] Move obsolete user examples to separate project
+- [ ] Maybe: Fix paths with pasting symbols from (e.g. from Discord)
+- [ ] Add some kind of cache which projects have been "fixed" 
+- 
+- [ ] Rename "Resources" -> "Assets"
+
 # Skill Quest
 
 - [x] Design for HUB, title, etc.

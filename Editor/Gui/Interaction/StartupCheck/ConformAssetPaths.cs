@@ -2,34 +2,48 @@
 using T3.Core.Model;
 using T3.Core.Operator;
 using T3.Core.Operator.Slots;
-using T3.Core.Utils;
 using T3.Editor.Gui.InputUi.SimpleInputUis;
 using T3.Editor.UiModel;
+using T3.Editor.UiModel.InputsAndTypes;
 
 namespace T3.Editor.Gui.Interaction.StartupCheck;
 
 /// <summary>
 /// Validates and updates the asset-paths of all loaded symbols 
 /// </summary>
+/// <remarks>
+///
+///        Sadly, for legacy projects, this could be...
+///         either a project a subfolder in the t3 `Resources/`:
+///              Old: Resources\fonts\Roboto-Black.fnt
+///               in: .\tixl\Resources\fonts\Roboto-Black.fnt  
+///              New: tixl.lib:fonts/Roboto-Black.fnt
+///               in: .\tixl\Operators\Lib\Assets\fonts\Roboto-Black.fnt
+///                        
+///         a local package sub folder:
+///              Old: Resources/images/basic/white-pixel.png 
+///               in .\tixl\Operators\Lib\Resources\images\basic\white-pixel.png 
+///              New: tixl.lib:images/basic/white-pixel.png
+///               in .\tixl\Operators\Lib\Assets\images\basic\white-pixel.png 
+///         
+///         Or a package(!) with shared resource:
+///              Old: Resources/lib/img/fx/Default2-vs.hlsl 
+///               in .\tixl\Operators\Lib\Resources\img\fx\Default2-vs.hlsl 
+///              New: tixl.lib:img/fx/Default2-vs.hlsl
+///               in .\tixl\Operators\Lib\Assets\shaders\img\fx\Default2-vs.hlsl 
+///
+/// </remarks>
 internal static class ConformAssetPaths
 {
-    // internal static void ConformResourceDirectories()
-    // {
-    //     foreach (var package in SymbolPackage.AllPackages)
-    //     {
-    //         if (package.ResourcesFolder.EndsWith("/Resources"))
-    //         {
-    //             
-    //         }
-    //     }
-    // }
-    
     internal static void ConformAllPaths()
     {
+        BuildAssetIndex();
+        
         foreach (var package in SymbolPackage.AllPackages)
         {
             foreach (var symbol in package.Symbols.Values)
             {
+                // Symbol Defaults
                 SymbolUi symbolUi = null;
                 foreach (var inputDef in symbol.InputDefinitions)
                 {
@@ -40,23 +54,13 @@ internal static class ConformAssetPaths
                     if (!symbolUi.InputUis.TryGetValue(inputDef.Id, out var inputUi))
                         continue;
                     
-                    if (inputUi is not StringInputUi stringUi)
-                        continue;
-                    
-                    if (stringUi.Usage != StringInputUi.UsageType.FilePath 
-                        && stringUi.Usage != StringInputUi.UsageType.DirectoryPath)
-                        continue;
-                        
                     if (inputDef.DefaultValue is not InputValue<string> stringValue)
                         continue;
-
-                    if (TryConvertResourcePath(stringValue.Value, symbol, out string converted))
-                    {
-                        Log.Debug($"{stringValue.Value} -> {converted}");
-                    }
                     
+                    ProcessStringInputUi(inputUi, stringValue, symbol);
                 }
                 
+                // Symbol children
                 foreach (var child in symbol.Children.Values)
                 {
                     foreach (var input in child.Inputs.Values)
@@ -78,72 +82,171 @@ internal static class ConformAssetPaths
 
                         if (!childSymbolUi.InputUis.TryGetValue(input.Id, out var inputUi))
                             continue;
-
-                        if (inputUi is not StringInputUi stringUi)
-                            continue;
-
-                        if (stringUi.Usage != StringInputUi.UsageType.FilePath 
-                            && stringUi.Usage != StringInputUi.UsageType.DirectoryPath)
-                            continue;
                         
-                        if (TryConvertResourcePath(stringValue.Value, symbol, out string converted))
-                        {
-                            Log.Debug($"{stringValue.Value} -> {converted}");
-                        }
+                        ProcessStringInputUi(inputUi, stringValue, symbol);
                     }
                 }
             }
         }
     }
 
-    private static bool TryConvertResourcePath(string path, Symbol symbol, out string newPath)
+    private static void ProcessStringInputUi(IInputUi inputUi, InputValue<string> stringValue, Symbol symbol)
+    {
+        if (inputUi is not StringInputUi stringUi)
+            return;
+
+        switch (stringUi.Usage)
+        {
+            case StringInputUi.UsageType.FilePath:
+            {
+                if (TryConvertResourcePathFuzzy(stringValue.Value, symbol, out string converted))
+                {
+                    Log.Debug($"{symbol.SymbolPackage.Name}: {stringValue.Value} -> {converted}");
+                    stringValue.Value =converted;
+                }
+
+                break;
+            }
+            case StringInputUi.UsageType.DirectoryPath:
+                Log.Warning($"{symbol.SymbolPackage.Name}: {stringValue.Value} ignoring directory path...");
+                break;
+        }
+    }
+
+    private static HashSet<string> IgnoredFiles => ["shadertoolsconfig.json"]; 
+    //
+    // private static bool TryConvertResourcePath2(string path, Symbol symbol, out string newPath)
+    // {
+    //     newPath = path;
+    //     if (string.IsNullOrWhiteSpace(path))
+    //         return false;
+    //
+    //     // 1. Standardize formatting immediately
+    //     var conformedPath = path.Replace("\\", "/");
+    //
+    //     // 2. Handle Absolute Paths (No change needed)
+    //     if (Path.IsPathRooted(conformedPath))
+    //     {
+    //         newPath = conformedPath;
+    //         return false;
+    //     }
+    //
+    //     var package = symbol.SymbolPackage;
+    //     var packageName = package.Name; 
+    //
+    //     // 3. Handle Old Aliased/Package paths: "/PackageName/path/..."
+    //     if (conformedPath.StartsWith('/'))
+    //     {
+    //         var trimmed = conformedPath.TrimStart('/');
+    //         var firstSlash = trimmed.IndexOf('/');
+    //     
+    //         if (firstSlash != -1)
+    //         {
+    //             var detectedPackage = trimmed[..firstSlash];
+    //             var subPath = trimmed[(firstSlash + 1)..];
+    //             // Convert to "PackageName:subpath"
+    //             newPath = $"{detectedPackage}:{subPath}";
+    //             return true;
+    //         }
+    //     }
+    //
+    //     // 4. Handle Legacy Local paths: "images/test.png"
+    //     // Since we are dropping local support, we MUST prefix them with the current package
+    //     // We also strip any legacy "Resources/" or "Assets/" prefix if it was manually typed
+    //     var legacyPrefix = "Resources/";
+    //     var assetPrefix = "Assets/";
+    //
+    //     var finalSubPath = conformedPath;
+    //     if (finalSubPath.StartsWith(legacyPrefix, StringComparison.OrdinalIgnoreCase))
+    //     {
+    //         var nextSlash = finalSubPath.IndexOf('/');
+    //         if (nextSlash != -1)
+    //         {
+    //
+    //             var subProjectItem = finalSubPath[..nextSlash];
+    //             
+    //             // how to handle?
+    //         }
+    //         
+    //         finalSubPath = finalSubPath[legacyPrefix.Length..];
+    //     }
+    //     else if (finalSubPath.StartsWith(assetPrefix, StringComparison.OrdinalIgnoreCase))
+    //         finalSubPath = finalSubPath[assetPrefix.Length..];
+    //
+    //     newPath = $"{packageName}:{finalSubPath}";
+    //     return !string.Equals(newPath, path, StringComparison.Ordinal);
+    // }
+    //
+
+    /// <summary>
+    /// Sadly, we can't use Path.IsPathRooted() because we the legacy filepaths also starts with "/"
+    /// So we're testing for windows paths likes c: 
+    /// </summary>
+    /// 
+    private static bool IsAbsoluteFilePath(string path)
+    {
+        var colon = path.IndexOf(':');
+        return colon == 1;
+    }
+
+    
+    private static bool TryConvertResourcePathFuzzy(string path, Symbol symbol, out string newPath)
     {
         newPath = path;
-        if (string.IsNullOrWhiteSpace(path))
+        if (string.IsNullOrWhiteSpace(path)) return false;
+
+        // 1. Ignore valid URIs and Absolute Paths
+        if (path.Contains(':') || IsAbsoluteFilePath(path))
             return false;
 
-        // 1. Standardize formatting immediately
-        var conformedPath = path.Replace("\\", "/");
-    
-        // 2. Handle Absolute Paths (No change needed)
-        if (Path.IsPathRooted(conformedPath))
+        // 2. Extract the filename from the legacy path
+        var legacyFileName = Path.GetFileName(path);
+
+        // 3. Heal the path using the index
+        if (_filenameToAddressCache.TryGetValue(legacyFileName, out var healedAddress))
         {
-            newPath = conformedPath;
-            return false;
+            newPath = healedAddress;
+            return true;
         }
-
-        var package = symbol.SymbolPackage;
-        var packageName = package.Name; 
-    
-        // 3. Handle Old Aliased/Package paths: "/PackageName/path/..."
-        if (conformedPath.StartsWith('/'))
-        {
-            var trimmed = conformedPath.TrimStart('/');
-            var firstSlash = trimmed.IndexOf('/');
         
-            if (firstSlash != -1)
-            {
-                var detectedPackage = trimmed[..firstSlash];
-                var subPath = trimmed[(firstSlash + 1)..];
-                // Convert to "PackageName:subpath"
-                newPath = $"{detectedPackage}:{subPath}";
-                return true;
-            }
-        }
 
-        // 4. Handle Legacy Local paths: "images/test.png"
-        // Since we are dropping local support, we MUST prefix them with the current package
-        // We also strip any legacy "Resources/" or "Assets/" prefix if it was manually typed
-        var legacyPrefix = "Resources/";
-        var assetPrefix = "Assets/";
+        // 4. Fallback: If not found in index, force it into the current package
+        var conformed = path.Replace("\\", "/").TrimStart('/');
+        newPath = $"{symbol.SymbolPackage.Name}:{conformed}";
+        Log.Warning($"Missing assets {symbol} : {legacyFileName}. Try {newPath}");
     
-        var finalSubPath = conformedPath;
-        if (finalSubPath.StartsWith(legacyPrefix, StringComparison.OrdinalIgnoreCase))
-            finalSubPath = finalSubPath[legacyPrefix.Length..];
-        else if (finalSubPath.StartsWith(assetPrefix, StringComparison.OrdinalIgnoreCase))
-            finalSubPath = finalSubPath[assetPrefix.Length..];
-
-        newPath = $"{packageName}:{finalSubPath}";
         return !string.Equals(newPath, path, StringComparison.Ordinal);
     }
+    
+    private static void BuildAssetIndex()
+    {
+        _filenameToAddressCache.Clear();
+    
+        foreach (var package in SymbolPackage.AllPackages)
+        {
+            // Use the absolute path provided by the package
+            var root = package.ResourcesFolder; // Future: .AssetsFolder
+            if (!Directory.Exists(root)) continue;
+
+            var files = Directory.EnumerateFiles(root, "*.*", SearchOption.AllDirectories);
+            foreach (var file in files)
+            {
+                var fileName = Path.GetFileName(file);
+                if (IgnoredFiles.Contains(fileName))
+                    continue;
+                
+                var relativePath = Path.GetRelativePath(root, file).Replace("\\", "/");
+                var address = $"{package.Name}:{relativePath}";
+            
+                // If filenames are unique, we just store it. 
+                // If not, we might need to store a list or prioritize.
+                if (!_filenameToAddressCache.TryAdd(fileName, address))
+                {
+                    Log.Warning($"{fileName} already exists in {_filenameToAddressCache[fileName]}");
+                }
+            }
+        }
+    }
+    
+    private static readonly Dictionary<string, string> _filenameToAddressCache = new(StringComparer.OrdinalIgnoreCase);
 }

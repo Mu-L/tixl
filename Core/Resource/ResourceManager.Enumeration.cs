@@ -11,6 +11,9 @@ namespace T3.Core.Resource;
 
 public static partial class ResourceManager
 {
+    /// <summary>
+    /// This method will become obsolete if file manage is no longer used.
+    /// </summary>
     public static IEnumerable<IResourcePackage> GetSharedPackagesForFiltersForFileManager(string[] fileExtensionFilters, 
                                                                             bool isFolder, 
                                                                             out string[] culledFilters)
@@ -176,7 +179,7 @@ public static partial class ResourceManager
                 case PathMode.PackageUri:
                     if (!_packagePathsCache.TryGetValue(absolutePath, out result))
                     {
-                        result = $"/{package.Name}/{absolutePath.AsSpan()[(directory.Length + 1)..]}";
+                        result = $"{package.Name}:{absolutePath.AsSpan()[(directory.Length + 1)..]}";
                         _packagePathsCache.TryAdd(absolutePath, result);
                     }
 

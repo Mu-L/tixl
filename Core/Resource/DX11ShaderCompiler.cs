@@ -122,7 +122,7 @@ public sealed partial class DX11ShaderCompiler : ShaderCompiler
                                                                                        { typeof(T3.Core.DataTypes.GeometryShader), "gs_5_0" },
                                                                                    };
 
-    private class IncludeHandler : SharpDX.D3DCompiler.Include, IResourceConsumer
+    private sealed class IncludeHandler : SharpDX.D3DCompiler.Include, IResourceConsumer
     {
         private StreamReader _streamReader;
         private readonly IResourceConsumer _owner;
@@ -142,7 +142,8 @@ public sealed partial class DX11ShaderCompiler : ShaderCompiler
 
         public Stream Open(IncludeType type, string fileName, Stream parentStream)
         {
-            if (ResourceManager.TryResolveUri(fileName, _owner, out var path, out _))
+            var fileNameInLib = "Lib:shaders/" + fileName; 
+            if (ResourceManager.TryResolveUri(fileNameInLib, _owner, out var path, out _))
             {
                 _streamReader = new StreamReader(path);
                 return _streamReader.BaseStream;

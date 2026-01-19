@@ -71,8 +71,8 @@ internal static partial class ProjectSetup
             InitializePackageResources(package);
         }
         
-
-        ShaderLinter.AddPackage(SharedResources.ResourcePackage, ResourceManager.SharedShaderPackages);
+        // FIXME: This needs to be properly handled.
+        //ShaderLinter.AddPackage(SharedResources.ResourcePackage, ResourceManager.SharedShaderPackages);
 
         // Initialize custom UIs
 
