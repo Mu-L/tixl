@@ -37,7 +37,15 @@ public static class AssetRegistry
             if (asset.FileSystemInfo != null && asset.IsDirectory == isFolder)
             {
                 absolutePath = asset.FileSystemInfo.FullName;
-                resourceContainer = ResourceManager.SharedShaderPackages.FirstOrDefault(c => c.Id == asset.PackageId);
+                resourceContainer = null;
+                
+                foreach (var c in ResourceManager.SharedShaderPackages)
+                {
+                    if (c.Id != asset.PackageId) continue;
+                    resourceContainer = c;
+                    break;
+                }
+
                 return resourceContainer != null;
             }
         }

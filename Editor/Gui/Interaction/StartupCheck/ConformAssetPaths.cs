@@ -201,8 +201,16 @@ internal static class ConformAssetPaths
         if (string.IsNullOrWhiteSpace(path)) return false;
 
         // 1. Ignore valid URIs and Absolute Paths
-        if (path.Contains(':') || IsAbsoluteFilePath(path))
+        if (IsAbsoluteFilePath(path))
             return false;
+
+        if (path.Contains(':'))
+        {
+            if (AssetRegistry.TryGetAsset(path, out _))
+            {
+                return false; // Ignore if valid
+            }
+        }
 
         // 2. Extract the filename from the legacy path
         var legacyFileName = Path.GetFileName(path);
