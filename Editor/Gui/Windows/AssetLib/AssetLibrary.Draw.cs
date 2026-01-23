@@ -101,7 +101,7 @@ internal sealed partial class AssetLibrary
             var isOpen = ImGui.TreeNodeEx(folder.Name);
             
             // Show filter count
-            if (!isOpen && isFiltering && hasMatches)
+            if (isFiltering && hasMatches)
             {
                 var countLabel = $"{folder.MatchingAssetCount}";
                 var labelSize = ImGui.CalcTextSize(countLabel);

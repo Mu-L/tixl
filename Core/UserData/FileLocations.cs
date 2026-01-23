@@ -37,7 +37,7 @@ public static string TestReferencesFolder => Path.Combine(".tixl", TestsSubFolde
     /// A subfolder next in the editor start folder.
     /// </summary>
     public static string ReadOnlySettingsPath => Path.Combine(StartFolder, ".tixl");
-    public static HashSet<string> IgnoredFiles => ["shadertoolsconfig.json"];
+    public static HashSet<string> IgnoredFiles => ["shadertoolsconfig.json", ".gitattributes", ".git"];
     
     public static readonly string SettingsDirectory =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 

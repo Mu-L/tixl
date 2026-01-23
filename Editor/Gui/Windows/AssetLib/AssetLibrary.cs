@@ -92,7 +92,7 @@ internal sealed partial class AssetLibrary : Window
             return;
 
         _state.TimeActiveInstanceChanged = ImGui.GetTime();
-
+        
         _state.ActiveInstance = selectedInstance;
         _state.ActivePathInput = null;
         _state.ActiveAssetAddress = null;
@@ -102,6 +102,7 @@ internal sealed partial class AssetLibrary : Window
         if (SymbolAnalysis.TryGetFileInputFromInstance(selectedInstance, out _state.ActivePathInput, out var stringInputUi))
         {
             _state.ActiveAssetAddress = _state.ActivePathInput.GetCurrentValue();
+            AssetRegistry.TryGetAsset(_state.ActiveAssetAddress, out _state.ActiveAsset);
 
             if (!UserSettings.Config.SyncWithOperatorSelection) 
                 return;
@@ -122,6 +123,7 @@ internal sealed partial class AssetLibrary : Window
         }
         else
         {
+            _state.ActiveAsset = null;
             _state.ActiveAssetAddress = null;
             _state.ActivePathInput = null;
             _state.ActiveTypeFilters.Clear();

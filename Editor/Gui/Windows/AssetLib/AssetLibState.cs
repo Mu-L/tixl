@@ -48,6 +48,8 @@ internal sealed class AssetLibState
     /// We need to indicate if a closed folder contains the file referenced in the <see cref="ActivePathInput"/> 
     /// </summary>
     public string? ActiveAssetAddress;
+
+    public Asset? ActiveAsset;
     
     /// <summary>
     /// List of extensions than can be opened by <see cref="ActiveInstance"/> operator

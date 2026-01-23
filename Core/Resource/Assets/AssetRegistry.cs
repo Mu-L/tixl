@@ -8,6 +8,7 @@ using System.Linq;
 using T3.Core.Logging;
 using T3.Core.Model;
 using T3.Core.Operator;
+using T3.Core.UserData;
 using T3.Core.Utils;
 
 namespace T3.Core.Resource.Assets;
@@ -38,7 +39,7 @@ public static class AssetRegistry
             {
                 absolutePath = asset.FileSystemInfo.FullName;
                 resourceContainer = null;
-                
+
                 foreach (var c in ResourceManager.SharedShaderPackages)
                 {
                     if (c.Id != asset.PackageId) continue;
@@ -93,9 +94,9 @@ public static class AssetRegistry
 
         foreach (var package in packages)
         {
-            if (!package.Name.AsSpan().Equals(packageName, StringComparison.Ordinal)) 
+            if (!package.Name.AsSpan().Equals(packageName, StringComparison.Ordinal))
                 continue;
-            
+
             resourceContainer = package;
             absolutePath = $"{package.ResourcesFolder}/{localPath}";
             return Exists(absolutePath, isFolder);
@@ -136,16 +137,22 @@ public static class AssetRegistry
         var di = new DirectoryInfo(root);
 
         RegisterEntry(di, root, packageAlias, packageId, isDirectory: true);
-        
+
         // Register all files
         foreach (var fileInfo in di.EnumerateFiles("*.*", SearchOption.AllDirectories))
         {
+            if (FileLocations.IgnoredFiles.Contains(fileInfo.Name))
+                continue;
+
             RegisterEntry(fileInfo, root, packageAlias, packageId, false);
         }
 
         // Register all directories
         foreach (var dirInfo in di.EnumerateDirectories("*", SearchOption.AllDirectories))
         {
+            if (FileLocations.IgnoredFiles.Contains(dirInfo.Name))
+                continue;
+
             RegisterEntry(new FileInfo(dirInfo.FullName), root, packageAlias, packageId, true);
         }
 
@@ -163,7 +170,7 @@ public static class AssetRegistry
         // Pre-calculate path parts
         var parts = relativePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
         var pathParts = new List<string>(parts.Length + 1) { packageAlias };
-    
+
         // Logic for folder structure
         var partCount = isDirectory ? parts.Length : parts.Length - 1;
         for (var i = 0; i < partCount; i++)
@@ -200,7 +207,7 @@ public static class AssetRegistry
             _usagesByAddress.TryRemove(uri, out _);
         }
     }
-    
+
     /// <summary>
     /// This will try to first create a localUrl, then a packageUrl,
     /// and finally fall back to an absolute path.
@@ -231,7 +238,7 @@ public static class AssetRegistry
         foreach (var p in composition.AvailableResourcePackages)
         {
             if (p == localPackage) continue;
-            
+
             var packageRoot = p.ResourcesFolder.TrimEnd('/') + "/";
             if (normalizedPath.StartsWith(packageRoot, StringComparison.OrdinalIgnoreCase))
             {
@@ -250,7 +257,7 @@ public static class AssetRegistry
     public const char PackageSeparator = ':';
 
     public static ICollection<Asset> AllAssets => _assetsByAddress.Values;
-    
+
     private static readonly ConcurrentDictionary<string, Asset> _assetsByAddress = new(StringComparer.OrdinalIgnoreCase);
     private static readonly ConcurrentDictionary<string, List<AssetReference>> _usagesByAddress = new();
 }

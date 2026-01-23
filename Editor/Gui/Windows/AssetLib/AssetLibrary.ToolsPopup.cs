@@ -20,31 +20,34 @@ internal sealed partial class AssetLibrary
             CustomComponents.DrawMenuItem(_deleteFileButtonId, "Delete file", null, false, false);
             CustomComponents.TooltipForLastItem("Not implemented yet :-(");
 
+            var isValidFile = _state.ActiveAsset is { IsDirectory: false, FileSystemInfo: not null }; 
+            var absolutePath = _state.ActiveAsset?.FileSystemInfo?.FullName;
+            
             if (CustomComponents.DrawMenuItem(_openExternallyId, "Open externally",
                                               null,
                                               false,
-                                              !string.IsNullOrEmpty(_state.ActiveAssetAddress)))
+                                              isValidFile))
             {
-                if (!string.IsNullOrEmpty(_state.ActiveAssetAddress))
-                    CoreUi.Instance.OpenWithDefaultApplication(_state.ActiveAssetAddress);
+                if(!string.IsNullOrEmpty(absolutePath))
+                    CoreUi.Instance.OpenWithDefaultApplication(absolutePath);
             }
 
+            var isValidDir = _state.ActiveAsset is { IsDirectory: true, FileSystemInfo: not null }; 
             if (CustomComponents.DrawMenuItem(_revealInExplorerId, "Reveal in Explorer",
                                               null,
                                               false,
-                                              !string.IsNullOrEmpty(_state.ActiveAssetAddress)))
+                                              !string.IsNullOrEmpty(absolutePath)))
             {
-                if (!string.IsNullOrEmpty(_state.ActiveAssetAddress))
+                var folder = isValidDir ? absolutePath :  Path.GetDirectoryName(absolutePath);
+                if (!string.IsNullOrEmpty(folder))
                 {
                     try
                     {
-                        var folder = Path.GetDirectoryName(_state.ActiveAssetAddress);
-                        if (!string.IsNullOrEmpty(folder))
-                            CoreUi.Instance.OpenWithDefaultApplication(folder);
+                        CoreUi.Instance.OpenWithDefaultApplication(folder);
                     }
                     catch (Exception e)
                     {
-                        Log.Warning($"Failed to get directory for {_state.ActiveAssetAddress} {e.Message}");
+                        Log.Warning($"Failed to get directory for {folder} {e.Message}");
                     }
                 }
             }
