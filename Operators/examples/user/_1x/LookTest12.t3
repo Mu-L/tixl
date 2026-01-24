@@ -1380,7 +1380,7 @@
         {
           "Id": "7d576017-89bd-4813-bc9b-70214efe6a27"/*Path*/,
           "Type": "System.String",
-          "Value": "Examples:meshes/studio_backdrop_round_360.obj"
+          "Value": "Examples:meshes/backdrops/studio_backdrop_round_360.obj"
         }
       ],
       "Outputs": []

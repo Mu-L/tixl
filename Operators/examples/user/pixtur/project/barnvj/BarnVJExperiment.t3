@@ -839,7 +839,7 @@
         {
           "Id": "50c9ab21-39f4-4e92-b5a7-ad9e60ae6ec3"/*FontPath*/,
           "Type": "System.String",
-          "Value": "Lib:fonts/ShareTechMono.fnt"
+          "Value": "Examples:fonts/ShareTechMono.fnt"
         },
         {
           "Id": "82cc31ff-3307-4b6d-be70-16e471c2ffc9"/*HorizontalAlign*/,
@@ -1306,7 +1306,7 @@
         {
           "Id": "e827fdd1-20ca-473c-99ee-b839563690e9"/*Filepath*/,
           "Type": "System.String",
-          "Value": "Lib:fonts/ShareTechMono.fnt"
+          "Value": "Examples:fonts/ShareTechMono.fnt"
         }
       ],
       "Outputs": []
@@ -1381,7 +1381,7 @@
         {
           "Id": "e827fdd1-20ca-473c-99ee-b839563690e9"/*Filepath*/,
           "Type": "System.String",
-          "Value": "Lib:fonts/ShareTechMono.fnt"
+          "Value": "Examples:fonts/ShareTechMono.fnt"
         }
       ],
       "Outputs": []
@@ -2067,7 +2067,7 @@
         {
           "Id": "50c9ab21-39f4-4e92-b5a7-ad9e60ae6ec3"/*FontPath*/,
           "Type": "System.String",
-          "Value": "Lib:fonts/ShareTechMono.fnt"
+          "Value": "Examples:fonts/ShareTechMono.fnt"
         },
         {
           "Id": "ae7f7e83-fa18-44fd-b639-3bd0dbd3ac06"/*VerticalAlign*/,
@@ -3131,7 +3131,7 @@
         {
           "Id": "50c9ab21-39f4-4e92-b5a7-ad9e60ae6ec3"/*FontPath*/,
           "Type": "System.String",
-          "Value": "Lib:fonts/PlayfairDisplay-Black.fnt"
+          "Value": "Examples:fonts/PlayfairDisplay-Black.fnt"
         },
         {
           "Id": "d89c518c-a862-4f46-865b-0380350b7417"/*Size*/,

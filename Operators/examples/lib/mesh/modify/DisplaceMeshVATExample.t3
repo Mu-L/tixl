@@ -233,7 +233,7 @@
         {
           "Id": "292e80cf-ba31-4a50-9bf4-83712430f811"/*Path*/,
           "Type": "System.String",
-          "Value": "Examples:meshes/RobRunFlat.glb"
+          "Value": "Examples:test-footage/VAT/RobRunFlat.glb"
         },
         {
           "Id": "d02f41a6-1a6b-4a6e-8d6c-a28873c79f2c"/*Setup*/,
@@ -318,7 +318,7 @@
         {
           "Id": "292e80cf-ba31-4a50-9bf4-83712430f811"/*Path*/,
           "Type": "System.String",
-          "Value": "Examples:meshes/CubeVAT.glb"
+          "Value": "Examples:test-footage/VAT/CubeVAT.glb"
         },
         {
           "Id": "57f129ae-0b2e-465d-8c0e-f6259fdd37ce"/*CombineBuffer*/,
@@ -488,7 +488,7 @@
         {
           "Id": "292e80cf-ba31-4a50-9bf4-83712430f811"/*Path*/,
           "Type": "System.String",
-          "Value": "Examples:meshes/RobRunFlat.glb"
+          "Value": "Examples:test-footage/VAT/RobRunFlat.glb"
         },
         {
           "Id": "d02f41a6-1a6b-4a6e-8d6c-a28873c79f2c"/*Setup*/,

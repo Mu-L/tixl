@@ -38,7 +38,7 @@
         {
           "Id": "7d576017-89bd-4813-bc9b-70214efe6a27"/*Path*/,
           "Type": "System.String",
-          "Value": "Examples:meshes/plane-xz.obj"
+          "Value": "Examples:meshes/primitives/plane-xz.obj"
         }
       ],
       "Outputs": []

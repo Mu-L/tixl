@@ -1363,7 +1363,7 @@
         {
           "Id": "7d576017-89bd-4813-bc9b-70214efe6a27"/*Path*/,
           "Type": "System.String",
-          "Value": "Examples:meshes/LowPolyPeople/male-wondering.obj"
+          "Value": "Examples:meshes/low-poly-people/male-wondering.obj"
         },
         {
           "Id": "c39a61b3-fb6b-4611-8f13-273f13c9c491"/*ScaleFactor*/,
@@ -1617,7 +1617,7 @@
         {
           "Id": "7d576017-89bd-4813-bc9b-70214efe6a27"/*Path*/,
           "Type": "System.String",
-          "Value": "Examples:meshes/LowPolyPeople/boy-standing.obj"
+          "Value": "Examples:meshes/low-poly-people/boy-standing.obj"
         },
         {
           "Id": "c39a61b3-fb6b-4611-8f13-273f13c9c491"/*ScaleFactor*/,
