@@ -22,7 +22,16 @@ public sealed class Asset
 
     // Added to support folder structure in UI without re-parsing
     public IReadOnlyList<string> PathParts { get; internal init; } = [];
-    public long FileSize => FileSystemInfo is FileInfo fi ? fi.Length : 0;
+    
+    public long FileSize 
+    {
+        get 
+        {
+            if (FileSystemInfo is not FileInfo fi) return 0;
+            fi.Refresh(); 
+            return fi.Exists ? fi.Length : 0;
+        }
+    }
     
     public static readonly Asset Unknown = new Asset
                                                {

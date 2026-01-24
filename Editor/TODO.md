@@ -49,11 +49,12 @@
 - [x] Extend Asset with isDirectory
 - [x] Return temp Assets?
 - [x] Update conform
-- [ ] Check file hook on rename
-- [ ] Check file hook on delete
+- [x] Check file hook on rename
+- [x] Check file hook on delete
 - [x] Add FolderPaths Assets
 - [x] In AssetLib (only use AssetRegistry)
 - [.] Test Recompile / Symbol Reload
+- [ ] Rename "Resource/" -> "Assets/"
 - [ ] Handle File asset Drag and Drop between folders
 - [ ] Collect AssetReferences on package load
 - [ ] List all uses for an Asset
