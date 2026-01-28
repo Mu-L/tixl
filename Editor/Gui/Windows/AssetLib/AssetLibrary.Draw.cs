@@ -123,7 +123,9 @@ internal sealed partial class AssetLibrary
             var isOpen = ImGui.TreeNodeEx(strId);
             ImGui.PopFont();
 
-            CustomComponents.DrawSearchMatchUnderline(_state.SearchString, strId, ImGui.GetItemRectMin());
+            CustomComponents.DrawSearchMatchUnderline(_state.SearchString, strId, 
+                                                      ImGui.GetItemRectMin() 
+                                                      +   new Vector2(ImGui.GetFontSize(),0));
             
             // Show filter count
             if (isFiltering && hasMatches)
@@ -177,8 +179,8 @@ internal sealed partial class AssetLibrary
                     }
 
                     var timeSinceChange = (float)(ImGui.GetTime() - _state.TimeActiveInstanceChanged);
-                    var fadeProgress = (timeSinceChange / 0.5f).Clamp(0, 1);
-                    var blinkFade = -MathF.Cos(timeSinceChange * 15f) * (1f - fadeProgress) * 0.7f + 0.75f;
+                    var fadeProgress = (timeSinceChange / 0.7f).Clamp(0, 1);
+                    var blinkFade = MathUtils.Lerp( -MathF.Cos(timeSinceChange * 15f)  * 0.8f +0.2f, 1, fadeProgress);
                     var color = UiColors.StatusActivated.Fade(blinkFade);
                     Icons.DrawIconOnLastItem(Icon.Aim, color);
 
@@ -254,7 +256,9 @@ internal sealed partial class AssetLibrary
         if (fileConsumerOpSelected && !fileConsumerOpIsCompatible)
             return;
 
-        ImGui.PushID(RuntimeHelpers.GetHashCode(asset));
+        _state.KeepVisibleTreeItemIds.Add(asset.Id);
+        
+        ImGui.PushID(asset.Id.GetHashCode());
         {
             var fade = !fileConsumerOpSelected
                            ? 0.7f
@@ -296,7 +300,7 @@ internal sealed partial class AssetLibrary
                 if (shift && _state.AnchorSelectionKey != default)
                 {
                     // TODO: This needs to be fixed for tree. 
-                    var range = GetRange(AssetRegistry.AllAssets.ToList(), _state.AnchorSelectionKey, asset.Id);
+                    var range = GetRange(_state.LastVisibleTreeItemIds, _state.AnchorSelectionKey, asset.Id);
                     if (!ctrl) _state.Selection.Clear();
                     _state.Selection.AddSelection(range);
                 }
@@ -316,7 +320,8 @@ internal sealed partial class AssetLibrary
             }
 
             CustomComponents.DrawSearchMatchUnderline(_state.SearchString, asset.FileSystemInfo?.Name, 
-                                                      ImGui.GetItemRectMin() + new Vector2(4,3));
+                                                      ImGui.GetItemRectMin() 
+                                                      + new Vector2(  ImGui.GetFontSize() +5,3) );
 
             if (isActive && !ImGui.IsItemVisible() && _state.HasActiveInstanceChanged)
             {
@@ -460,15 +465,15 @@ internal sealed partial class AssetLibrary
 
     
     // Helper to find IDs between two points
-    private IEnumerable<Guid> GetRange(List<Asset> list, Guid startId, Guid endId)
+    private static IEnumerable<Guid> GetRange(List<Guid> list, Guid startId, Guid endId)
     {
-        int start = list.FindIndex(a => a.Id == startId);
-        int end = list.FindIndex(a => a.Id == endId);
+        var start = list.FindIndex(id => id == startId);
+        var end = list.FindIndex(id => id == endId);
     
-        int min = Math.Min(start, end);
-        int max = Math.Max(start, end);
+        var min = Math.Min(start, end);
+        var max = Math.Max(start, end);
     
-        return list.Skip(min).Take(max - min + 1).Select(a => a.Id);
+        return list.Skip(min).Take(max - min + 1);
     }
     
     // private static void HandleDropTarget(AssetFolder subtree)

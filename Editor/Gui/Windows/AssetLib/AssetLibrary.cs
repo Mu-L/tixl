@@ -39,6 +39,10 @@ internal sealed partial class AssetLibrary : Window
             selectedInstance = _state.Composition;
         }
 
+        // Swap visible state from last frame
+        (_state.LastVisibleTreeItemIds, _state.KeepVisibleTreeItemIds) = (_state.KeepVisibleTreeItemIds, _state.LastVisibleTreeItemIds);
+        _state.KeepVisibleTreeItemIds.Clear();
+
         UpdateActiveSelection(selectedInstance);
 
         // Draw

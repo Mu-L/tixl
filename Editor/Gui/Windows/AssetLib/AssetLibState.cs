@@ -67,7 +67,15 @@ internal sealed class AssetLibState
 
     internal readonly SelectionHandler<Guid> Selection = new();
     internal Guid AnchorSelectionKey;
+
+    /// <summary>
+    /// An internal list that is updated on every draw call.
+    /// </summary>
+    internal List<Guid> LastVisibleTreeItemIds = new(128);
+
     
+    /** Is collecting while drawing the current frame */
+    internal List<Guid> KeepVisibleTreeItemIds = new List<Guid>(128); 
     
     /// <summary>
     /// An internal counter to check if any of the resource folders have changed externally.
