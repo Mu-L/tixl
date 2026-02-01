@@ -276,6 +276,7 @@ internal sealed partial class AssetLibrary
             var isSelected = _state.Selection.IsSelected(asset.Id);
 
             // Draw Item
+            var cursorScreenPos = ImGui.GetCursorScreenPos();
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() - 6);
             if (ButtonWithIcon(string.Empty,
                                asset.FileSystemInfo?.Name ?? string.Empty,
@@ -371,6 +372,14 @@ internal sealed partial class AssetLibrary
 
             DragAndDropHandling.HandleDragSourceForLastItem(DragAndDropHandling.DragTypes.FileAsset, asset.Address, "Move or use asset");
 
+            var hasUses = AssetRegistry.ReferencesForAssetId.TryGetValue(asset.Id, out var uses);
+            if (!hasUses)
+            {
+                var pos = new Vector2(ImGui.GetWindowPos().X, cursorScreenPos.Y + (ImGui.GetFrameHeight() - 16 + 10)/2);
+                Icons.DrawIconAtScreenPosition(Icon.Sleeping, pos, ImGui.GetWindowDrawList(), UiColors.Text.Fade(0.4f));
+            }
+
+            
             if (ImGui.IsItemHovered())
             {
                 ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeAll); // Indicator for drag
@@ -392,7 +401,6 @@ internal sealed partial class AssetLibrary
                         FormInputs.AddVerticalSpace(2);
                         CustomComponents.StylizedText($"in {path}", Fonts.FontSmall, UiColors.TextMuted);
                         
-                        var hasUses = AssetRegistry.ReferencesForAssetId.TryGetValue(asset.Id, out var uses);
                         
                         FormInputs.AddVerticalSpace();
                         if (hasUses && uses != null)
@@ -405,7 +413,10 @@ internal sealed partial class AssetLibrary
                         }
                         else
                         {
-                            ImGui.TextUnformatted("Not used in any project");
+                            ImGui.TextUnformatted("""
+                                                   Not directly used in any parameter. 
+                                                   (Other users are possible...)
+                                                   """);
                         }
                         
                         //ImGui.PopTextWrapPos();

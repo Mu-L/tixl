@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 
 using T3.Core.Resource.Assets;
 using T3.Editor.Gui.Styling;
@@ -19,6 +19,7 @@ internal static class AssetHandling
                                        PrimaryOperators = [new Guid("be52b670-9749-4c0d-89f0-d8b101395227")], // LoadObj
                                        Color = UiColors.ColorForGpuData,
                                        IconId = (uint)Icon.FileGeometry,
+                                       Subfolders = ["geometry","mesh","meshes","objs"],
                                    });
 
         AssetType.RegisterType(new AssetType("Gltf", [
@@ -34,6 +35,7 @@ internal static class AssetHandling
                                            ],
                                        Color = UiColors.ColorForGpuData,
                                        IconId = (uint)Icon.FileGeometry,
+                                       Subfolders = ["geometry","mesh","meshes","gltf"],
                                    });
 
         AssetType.RegisterType(new AssetType("Image", [
@@ -49,6 +51,7 @@ internal static class AssetHandling
                                        PrimaryOperators = [new Guid("0b3436db-e283-436e-ba85-2f3a1de76a9d")], // Load Image
                                        Color = UiColors.ColorForTextures,
                                        IconId = (uint)Icon.FileImage,
+                                       Subfolders = ["images", "image"],
                                    });
         AssetType.RegisterType(new AssetType("Video", [
                                        FileExtensionRegistry.GetUniqueId("mp4"),
@@ -61,6 +64,7 @@ internal static class AssetHandling
                                        PrimaryOperators = [new Guid("914fb032-d7eb-414b-9e09-2bdd7049e049")], // PlayVideo
                                        Color = UiColors.ColorForTextures,
                                        IconId = (uint)Icon.FileVideo,
+                                       Subfolders = ["videos", "video", "media"],
                                    });
         AssetType.RegisterType(new AssetType("Audio", [
                                        FileExtensionRegistry.GetUniqueId("wav"),
@@ -72,6 +76,8 @@ internal static class AssetHandling
                                                [new Guid("c2b2758a-5b3e-465a-87b7-c6a13d3fba48")], // PlayAudioClip
                                        Color = UiColors.ColorForValues,
                                        IconId = (uint)Icon.FileAudio,
+                                       Subfolders = ["audio", "soundtrack","samples"],
+                                       
                                    });
         AssetType.RegisterType(new AssetType("Shader", [
                                        FileExtensionRegistry.GetUniqueId("hlsl")
@@ -85,6 +91,7 @@ internal static class AssetHandling
                                            ],
                                        Color = UiColors.ColorForString,
                                        IconId = (uint)Icon.FileShader,
+                                       Subfolders = ["shaders"],
                                    });
         AssetType.RegisterType(new AssetType("JSON",
                                    [
@@ -98,6 +105,7 @@ internal static class AssetHandling
                                            ],
                                        Color = UiColors.ColorForString,
                                        IconId = (uint)Icon.FileDocument,
+                                       Subfolders = ["json", "data"],
                                    });
         AssetType.RegisterType(new AssetType("TiXLFont",
                                    [
@@ -111,6 +119,7 @@ internal static class AssetHandling
                                            ],
                                        Color = UiColors.ColorForCommands,
                                        IconId = (uint)Icon.FileT3Font,
+                                       Subfolders = ["fonts", "font"],
                                    });
         AssetType.RegisterType(new AssetType("Svg",
                                    [
@@ -125,6 +134,7 @@ internal static class AssetHandling
                                            ],
                                        Color = UiColors.ColorForValues,
                                        IconId = (uint)Icon.FileVector,
+                                       Subfolders = ["svg"],
                                    });
         AssetType.RegisterType(new AssetType("Text",
                                    [
@@ -141,6 +151,7 @@ internal static class AssetHandling
                                           .ColorForString,
                                        IconId = (uint)Icon
                                           .FileDocument,
+                                       Subfolders = ["text","data"],
                                    });
     }
 

@@ -286,6 +286,8 @@ internal static class Icons
             new(Icon.ApplySelection, slotIndex: 137),
             new(Icon.PasteFromClipboard, slotIndex: 138),
             new(Icon.Cross, slotIndex: 139),
+            new(Icon.BackUp, slotIndex: 140),
+            new(Icon.Sleeping, slotIndex: 141),
         };
 
     public static readonly string IconAtlasPath = Path.Combine(SharedResources.EditorResourcesDirectory, @"images/t3-icons.png");
@@ -440,5 +442,7 @@ public enum Icon
     ArrowDown,
     ApplySelection,
     PasteFromClipboard,
-    Cross
+    Cross,
+    BackUp,
+    Sleeping
 }
