@@ -56,12 +56,6 @@ internal static class DropHandling
             return;
         }
 
-        // if (assetType == null)
-        // {
-        //     Log.Warning($"{address} has no asset type");
-        //     return;
-        // }
-
         if (assetResult == DragAndDropHandling.DragInteractionResult.Hovering)
         {
             DrawDropPreviewItem(asset);
@@ -94,9 +88,9 @@ internal static class DropHandling
         SymbolPackage? package = context.CompositionInstance.Symbol.SymbolPackage;
         if (package == null)
             return false;
-        
+
         DragAndDropHandling.TryHandleDropOnItem(DragAndDropHandling.DragTypes.ExternalFile, out var data, out var result);
-        
+
         var packageResourcesFolder = package.AssetsFolder;
 
         if (result == DragAndDropHandling.DragInteractionResult.Hovering)
@@ -117,58 +111,72 @@ internal static class DropHandling
         }
 
         if (result != DragAndDropHandling.DragInteractionResult.Dropped
-            || data == null) 
+            || data == null)
             return false;
-        
+
         var filePaths = data.Split("|");
 
         var dropOffset = Vector2.Zero;
 
         foreach (var filepath in filePaths)
         {
-            if (!TryImportDroppedFile(filepath, package, out var asset)) 
+            if (!TryImportDroppedFile(filepath, package, out var asset))
                 continue;
 
-//            ResourceFileWatcher.FileStateChangeCounter++;
-            
             if (!CreateAssetOperatorOnGraph(context, asset, dropOffset))
                 return false;
-            
+
             dropOffset += new Vector2(20, 100);
         }
 
         return false;
     }
 
-    
     /// <summary>
-    /// 
+    /// Import an external file as <see cref="Asset"/> asset or return existing.
     /// </summary>
-    private static bool TryImportDroppedFile(string sourcePath, SymbolPackage package, [NotNullWhen(true)]out Asset? asset)
+    private static bool TryImportDroppedFile(string sourcePath, SymbolPackage package, [NotNullWhen(true)] out Asset? asset)
     {
         asset = null;
         if (!Path.Exists(sourcePath))
             return false;
-        
+
         var fileName = Path.GetFileName(sourcePath);
 
         if (!AssetType.TryGetForFilePath(sourcePath, out var assetType, out _))
         {
-            Log.Warning("Can't find this asset type.");
+            Log.Warning($"Unsupported asset type {assetType}");
             return false;
         }
-        
-        // Check for existing copies...
-        //var alreadyHasWithName = AssetRegistry.TryGetAssetsForFilename(fileName, out var existingAssets);
-        // Todo: check for asset type target folders
-        
-        var destFilepath = Path.Combine(package.AssetsFolder, fileName);
-        
-        if (!File.Exists(destFilepath))
+
+        var existsInSubFolder = false;
+        var existsInPackageRootFolder = false;
+
+        var destFilepath = string.Empty;
+
+        foreach (var subFolder in assetType.Subfolders)
         {
+            destFilepath = Path.Combine(package.AssetsFolder, subFolder, fileName);
+            if (!File.Exists(destFilepath))
+                continue;
+
+            existsInSubFolder = true;
+            break;
+        }
+
+        if (!existsInSubFolder)
+        {
+            destFilepath = Path.Combine(package.AssetsFolder, fileName);
+            existsInPackageRootFolder = File.Exists(destFilepath);
+        }
+
+        if (!existsInSubFolder && !existsInPackageRootFolder)
+        {
+            destFilepath = assetType.Subfolders.Length > 0
+                               ? Path.Combine(package.AssetsFolder, assetType.Subfolders[0], fileName)
+                               : Path.Combine(package.AssetsFolder, fileName);
+
             // Copy to project first...
-            //var fileName = Path.GetFileName(filepath);
-            //var destFileName = Path.Combine(packageResourcesFolder, fileName);
             try
             {
                 File.Copy(sourcePath, destFilepath);
@@ -179,8 +187,8 @@ internal static class DropHandling
                 return false;
             }
 
-            Log.Debug($"Copied {fileName} to {package.AssetsFolder}");
-            
+            Log.Debug($"Imported {fileName} to {package.AssetsFolder}");
+
             FileInfo? destFileInfo;
             try
             {
@@ -191,35 +199,16 @@ internal static class DropHandling
                 Log.Warning($"Failed to get fileinfo after dropping to {destFilepath} " + e.Message);
                 return false;
             }
-            
-            asset=AssetRegistry.RegisterPackageEntry(destFileInfo, package, false);
+
+            asset = AssetRegistry.RegisterPackageEntry(destFileInfo, package, false);
             return true;
         }
-        
-        
-        // else
-        // {
-        //     Log.Debug("Already project asset: " + sourcePath);
-        // }
 
-        if (AssetRegistry.TryToGetAssetFromFilepath(destFilepath, out asset)) 
+        if (AssetRegistry.TryToGetAssetFromFilepath(destFilepath, out asset))
             return true;
-        
+
         Log.Warning($"Existing file not registered as asset? {destFilepath}");
         return false;
-
-        // if (!AssetRegistry.TryConstructAddressFromFilePath(destFilepath, composition, out var address, out var resourcePackage))
-        // {
-        //     Log.Warning($"Can't construct address for {destFilepath}");
-        //     return false;
-        // }
-        //
-        // if (string.IsNullOrEmpty(package.Name))
-        // {
-        //     Log.Warning("Can't drop into unnamed package?");
-        //     return false;
-        // }
-        
     }
 
     private static void DrawDropPreviewItem(Asset asset)
@@ -245,8 +234,8 @@ internal static class DropHandling
     }
 
     private static bool CreateAssetOperatorOnGraph(GraphUiContext context,
-                                            Asset asset, 
-                                            Vector2 dropOffset)
+                                                   Asset asset,
+                                                   Vector2 dropOffset)
     {
         if (asset.AssetType.PrimaryOperators.Count == 0)
         {
@@ -277,13 +266,13 @@ internal static class DropHandling
                                         symbolId: stringInput.Parent.Symbol.Id,
                                         stringInput.Parent.SymbolChildId,
                                         stringInput.Id);
-        
+
         return true;
     }
 
-    private static bool TryCreateSymbolInstanceOnGraph(GraphUiContext context, 
-                                                       Guid guid, 
-                                                       Vector2 offsetInScreen, 
+    private static bool TryCreateSymbolInstanceOnGraph(GraphUiContext context,
+                                                       Guid guid,
+                                                       Vector2 offsetInScreen,
                                                        [NotNullWhen(true)] out Instance? newInstance)
     {
         newInstance = null;
