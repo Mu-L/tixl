@@ -32,7 +32,7 @@ internal sealed partial class EditableSymbolProject : EditorSymbolPackage
         DisplayName = $"{csProjectFile.Name} ({CsProjectFile.RootNamespace})";
         SymbolUpdated += OnSymbolUpdated;
         SymbolRemoved += OnSymbolRemoved;
-        InitializeResources();
+        InitializeAssets();
 
         _allProjectsCache = null;
     }
@@ -120,9 +120,9 @@ internal sealed partial class EditableSymbolProject : EditorSymbolPackage
                         .Concat(directoryInfo.EnumerateFiles($"*{fileExtension}")).Select(x => x.FullName);
     }
 
-    protected override void InitializeResources()
+    protected override void InitializeAssets()
     {
-        base.InitializeResources();
+        base.InitializeAssets();
         _resourceFileWatcher = new ResourceFileWatcher(ResourcesFolder);
         
         _resourceFileWatcher.FileCreated += (sender, path) => 
@@ -137,7 +137,7 @@ internal sealed partial class EditableSymbolProject : EditorSymbolPackage
 
         _resourceFileWatcher.FileDeleted += (sender, path) => 
                                             {
-                                                AssetRegistry.UnregisterEntry(path, this);
+                                                AssetRegistry.UnregisterAbsoluteFilePath(path, this);
                                             };
     }
 

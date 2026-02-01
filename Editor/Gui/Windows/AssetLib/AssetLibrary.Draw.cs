@@ -1,12 +1,15 @@
 #nullable enable
+using System.IO;
 using System.Runtime.CompilerServices;
 using ImGuiNET;
 using T3.Core.DataTypes.Vector;
+using T3.Core.Operator;
 using T3.Core.Operator.Slots;
 using T3.Core.Resource.Assets;
 using T3.Core.SystemUi;
 using T3.Core.UserData;
 using T3.Core.Utils;
+using T3.Editor.Gui.Input;
 using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
 using T3.Editor.UiModel.Commands;
@@ -91,7 +94,7 @@ internal sealed partial class AssetLibrary
                 ImGui.SetNextItemOpen(true);
                 _state.OpenedProjectsFolderOnce = true;
             }
-            
+
             var hasMatches = folder.MatchingAssetCount > 0;
             var isSearching = !string.IsNullOrEmpty(_state.SearchString);
             var isFiltering = _state.CompatibleExtensionIds.Count > 0 || isSearching;
@@ -99,7 +102,6 @@ internal sealed partial class AssetLibrary
 
             if (isSearching && !hasMatches)
                 return;
-
 
             // Draw 
             ImGui.SetNextItemWidth(10);
@@ -109,13 +111,12 @@ internal sealed partial class AssetLibrary
 
             ImGui.PushStyleColor(ImGuiCol.Text, textMutedRgba.Rgba);
 
-
             var containsTargetFile = ContainsTargetFile(folder);
             if (_expandToFileTriggered && containsTargetFile)
             {
                 ImGui.SetNextItemOpen(true);
             }
-            
+
             _state.TreeHandler.UpdateForNode(folder.HashCode);
 
             // Draw the actual folder item
@@ -123,10 +124,10 @@ internal sealed partial class AssetLibrary
             var isOpen = ImGui.TreeNodeEx(strId);
             ImGui.PopFont();
 
-            CustomComponents.DrawSearchMatchUnderline(_state.SearchString, strId, 
-                                                      ImGui.GetItemRectMin() 
-                                                      +   new Vector2(ImGui.GetFontSize(),0));
-            
+            CustomComponents.DrawSearchMatchUnderline(_state.SearchString, strId,
+                                                      ImGui.GetItemRectMin()
+                                                      + new Vector2(ImGui.GetFontSize(), 0));
+
             // Show filter count
             if (isFiltering && hasMatches)
             {
@@ -180,7 +181,7 @@ internal sealed partial class AssetLibrary
 
                     var timeSinceChange = (float)(ImGui.GetTime() - _state.TimeActiveInstanceChanged);
                     var fadeProgress = (timeSinceChange / 0.7f).Clamp(0, 1);
-                    var blinkFade = MathUtils.Lerp( -MathF.Cos(timeSinceChange * 15f)  * 0.8f +0.2f, 1, fadeProgress);
+                    var blinkFade = MathUtils.Lerp(-MathF.Cos(timeSinceChange * 15f) * 0.8f + 0.2f, 1, fadeProgress);
                     var color = UiColors.StatusActivated.Fade(blinkFade);
                     Icons.DrawIconOnLastItem(Icon.Aim, color);
 
@@ -257,7 +258,7 @@ internal sealed partial class AssetLibrary
             return;
 
         _state.KeepVisibleTreeItemIds.Add(asset.Id);
-        
+
         ImGui.PushID(asset.Id.GetHashCode());
         {
             var fade = !fileConsumerOpSelected
@@ -272,9 +273,8 @@ internal sealed partial class AssetLibrary
                            ? (Icon)asset.AssetType.IconId
                            : Icon.FileImage;
 
-            
             var isSelected = _state.Selection.IsSelected(asset.Id);
-            
+
             // Draw Item
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() - 6);
             if (ButtonWithIcon(string.Empty,
@@ -292,7 +292,7 @@ internal sealed partial class AssetLibrary
 
                     ApplyResourcePath(asset, stringInput);
                 }
-                
+
                 var io = ImGui.GetIO();
                 bool ctrl = io.KeyCtrl;
                 bool shift = io.KeyShift;
@@ -316,12 +316,11 @@ internal sealed partial class AssetLibrary
                     _state.Selection.Select(asset.Id);
                     _state.AnchorSelectionKey = asset.Id;
                 }
-                
             }
 
-            CustomComponents.DrawSearchMatchUnderline(_state.SearchString, asset.FileSystemInfo?.Name, 
-                                                      ImGui.GetItemRectMin() 
-                                                      + new Vector2(  ImGui.GetFontSize() +5,3) );
+            CustomComponents.DrawSearchMatchUnderline(_state.SearchString, asset.FileSystemInfo?.Name,
+                                                      ImGui.GetItemRectMin()
+                                                      + new Vector2(ImGui.GetFontSize() + 5, 3));
 
             if (isActive && !ImGui.IsItemVisible() && _state.HasActiveInstanceChanged)
             {
@@ -344,8 +343,27 @@ internal sealed partial class AssetLibrary
                                                                        {
                                                                            CoreUi.Instance.OpenWithDefaultApplication(absolutePath);
                                                                        }
-
-                                                                       Log.Debug("Not implemented yet");
+                                                                   }
+                                                                   
+                                                                   if (ImGui.MenuItem("Reveal in Explorer"))
+                                                                   {
+                                                                       var absolutePath = asset.FileSystemInfo?.FullName;
+                                                                       if (!string.IsNullOrEmpty(absolutePath))
+                                                                       {
+                                                                           CoreUi.Instance.OpenWithDefaultApplication(absolutePath);
+                                                                       }
+                                                                       var folder =  Path.GetDirectoryName(absolutePath);
+                                                                       if (!string.IsNullOrEmpty(folder))
+                                                                       {
+                                                                           try
+                                                                           {
+                                                                               CoreUi.Instance.OpenWithDefaultApplication(folder);
+                                                                           }
+                                                                           catch (Exception e)
+                                                                           {
+                                                                               Log.Warning($"Failed to get directory for {folder} {e.Message}");
+                                                                           }
+                                                                       }                                                                       
                                                                    }
                                                                },
                                                 title: asset.FileSystemInfo?.Name,
@@ -361,22 +379,40 @@ internal sealed partial class AssetLibrary
                 {
                     var absolutePath = asset.FileSystemInfo?.FullName;
                     var fileName = asset.FileSystemInfo?.Name ?? "Unknown";
-                    var path = absolutePath != null && fileName != null && absolutePath.EndsWith(fileName)
-                    ? absolutePath.Substring(0, absolutePath.Length - fileName.Length)
-                    : absolutePath;
+                    var path = absolutePath != null && absolutePath.EndsWith(fileName)
+                                   ? absolutePath[..^fileName.Length]
+                                   : absolutePath;
 
-                    ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(4, 4)*T3Ui.UiScaleFactor);
+                    ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(4, 4) * T3Ui.UiScaleFactor);
                     
-                    ImGui.BeginTooltip();
-                    ImGui.PushTextWrapPos(ImGui.GetFontSize() * 50.0f);
-                    ImGui.TextUnformatted($"""
-                                           File: {fileName} | {asset.FileSize} bytes
-                                           Path: {path}
-                                           Time: {asset.FileSystemInfo?.LastWriteTime}
-                                           """);
-                    ImGui.PopTextWrapPos();
+
+                    if (ImGui.BeginTooltip())
+                    {
+                        CustomComponents.StylizedText($"{StringUtils.GetReadableFileSize(asset.FileSize)}  / {asset.FileSystemInfo?.LastWriteTime}", Fonts.FontSmall, UiColors.TextMuted);
+                        FormInputs.AddVerticalSpace(2);
+                        CustomComponents.StylizedText($"in {path}", Fonts.FontSmall, UiColors.TextMuted);
+                        
+                        var hasUses = AssetRegistry.ReferencesForAssetId.TryGetValue(asset.Id, out var uses);
+                        
+                        FormInputs.AddVerticalSpace();
+                        if (hasUses && uses != null)
+                        {
+                            CustomComponents.StylizedText("Used in...", Fonts.FontSmall, UiColors.TextMuted);
+                            foreach (var reference in uses)
+                            {
+                                DrawAssetReference(reference);
+                            }
+                        }
+                        else
+                        {
+                            ImGui.TextUnformatted("Not used in any project");
+                        }
+                        
+                        //ImGui.PopTextWrapPos();
+                        ImGui.EndTooltip();
+                    }
+                    
                     ImGui.PopStyleVar();
-                    ImGui.EndTooltip();
                 }
             }
 
@@ -394,7 +430,40 @@ internal sealed partial class AssetLibrary
         ImGui.PopID();
     }
 
-    
+    private static void DrawAssetReference(AssetReference reference)
+    {
+        if (!SymbolRegistry.TryGetSymbol(reference.SymbolId, out var symbol))
+        {
+            Log.Debug("Symbol for asset reference not found? " + reference.SymbolId);
+            return;
+        }
+
+        if (reference.SymbolChildId != Guid.Empty)
+        {
+            if (!symbol.Children.TryGetValue(reference.SymbolChildId, out var symbolChild))
+            {
+                ImGui.TextUnformatted("??? child not found");
+                return;
+            }
+            
+            ImGui.TextColored(UiColors.TextMuted,$"{symbol.Namespace}.");
+            ImGui.SameLine();
+            ImGui.TextUnformatted($"{symbol.Name}");
+            ImGui.SameLine();
+            ImGui.TextColored(UiColors.TextMuted,$" » {symbolChild.Symbol.Name}");
+            return;
+        }
+
+        var inputDefinition = symbol.InputDefinitions.FirstOrDefault(i => i.Id == reference.InputId);
+        var inputName = inputDefinition?.Name ?? "???";
+        ImGui.TextColored(UiColors.TextMuted,$"{symbol.Namespace}.");
+        ImGui.SameLine();
+        ImGui.TextUnformatted($"{symbol.Name}");
+        ImGui.SameLine();
+        
+        ImGui.TextColored(UiColors.TextMuted,$".{inputName} (Default)");
+    }
+
     private static bool ButtonWithIcon(string id, string label, Icon icon, Color iconColor, Color textColor, bool isActive)
     {
         var cursorPos = ImGui.GetCursorScreenPos();
@@ -424,6 +493,7 @@ internal sealed partial class AssetLibrary
         {
             drawList.AddRectFilled(buttonMin, buttonMax, UiColors.BackgroundActive.Fade(0.5f), 5);
         }
+
         if (isActive)
         {
             drawList.AddRect(buttonMin, buttonMax, UiColors.StatusActivated, 5);
@@ -473,19 +543,18 @@ internal sealed partial class AssetLibrary
         UndoRedoStack.Add(changeInputValueCommand);
     }
 
-    
     // Helper to find IDs between two points
     private static IEnumerable<Guid> GetRange(List<Guid> list, Guid startId, Guid endId)
     {
         var start = list.FindIndex(id => id == startId);
         var end = list.FindIndex(id => id == endId);
-    
+
         var min = Math.Min(start, end);
         var max = Math.Max(start, end);
-    
+
         return list.Skip(min).Take(max - min + 1);
     }
-    
+
     // private static void HandleDropTarget(AssetFolder subtree)
     // {
     //     if (!DragAndDropHandling.TryGetDataDroppedLastItem(DragAndDropHandling.AssetDraggingId, out var data))

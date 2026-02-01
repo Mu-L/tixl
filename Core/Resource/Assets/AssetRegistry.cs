@@ -158,10 +158,10 @@ public static class AssetRegistry
             var asset =RegisterEntry(fileInfo, root, packageAlias, packageId, false);
             
             // Collect all possible addresses for this filename
-            var list = _healerIndex.GetOrAdd(fileInfo.Name, _ => []);
+            var list = _assetsMatchingFilenames.GetOrAdd(fileInfo.Name, _ => []);
             lock (list)
             {
-                if (!list.Contains(asset.Address)) list.Add(asset.Address);
+                if (!list.Contains(asset)) list.Add(asset);
             }
         }
 
@@ -176,6 +176,7 @@ public static class AssetRegistry
 
         //Log.Debug($"{packageAlias}: Registered {_assetsByAddress.Count(a => a.Value.PackageId == packageId)} assets (including directories).");
     }
+    
 
     public static Asset RegisterEntry(FileSystemInfo info, string root, string packageAlias, Guid packageId, bool isDirectory)
     {
@@ -218,13 +219,12 @@ public static class AssetRegistry
     {
         var addressesToRemove = _assetsByAddress.Values
                                            .Where(a => a.PackageId == packageId)
-                                           .Select(a => a.Address)
                                            .ToList();
 
-        foreach (var addr in addressesToRemove)
+        foreach (var asset in addressesToRemove)
         {
-            _assetsByAddress.TryRemove(addr, out _);
-            //_usagesByAddress.TryRemove(addr, out _);
+            _assetsByAddress.TryRemove(asset.Address, out _);
+            ReferencesForAssetId.Remove(asset.Id, out _);
         }
     }
 
@@ -318,7 +318,7 @@ public static class AssetRegistry
     }
     
     
-    public static void UnregisterEntry(string absolutePath, SymbolPackage package)
+    public static void UnregisterAbsoluteFilePath(string absolutePath, SymbolPackage package)
     {
         // Convert the absolute disk path back to our conformed "Alias:Path"
         var root = package.ResourcesFolder;
@@ -326,24 +326,42 @@ public static class AssetRegistry
             return;
 
         var relativePath = Path.GetRelativePath(root, absolutePath).Replace("\\", "/");
-        if (relativePath == ".") relativePath = string.Empty;
+        if (relativePath.Equals(".", StringComparison.Ordinal)) 
+            relativePath = string.Empty;
     
         var address = $"{package.Name}{PackageSeparator}{relativePath}";
 
-        if (_assetsByAddress.TryRemove(address, out _))
+        if (_assetsByAddress.TryRemove(address, out var asset))
         {
             Log.Debug($"Removed {address} from registry.");
         }
+
+        var lastSlash = relativePath.LastIndexOf('/');
+        var filename = lastSlash == -1 
+                           ? relativePath 
+                           : relativePath[lastSlash..];
+
+        if (_assetsMatchingFilenames.TryRemove(filename.ToString(), out _))
+        {
+            Log.Debug($"Removed {address} from file matches.");
+        }
+
+        if (asset != null && ReferencesForAssetId.Remove(asset.Id))
+        {
+            Log.Debug($"Removed {address} from file matches.");
+        }
     }
 
-    public static bool TryGetHealerMatches(string filename, [NotNullWhen(true)] out List<string>? matches) 
-        => _healerIndex.TryGetValue(filename, out matches);
+    public static bool TryGetAssetsForFilename(string filename, [NotNullWhen(true)] out List<Asset>? matches) 
+        => _assetsMatchingFilenames.TryGetValue(filename, out matches);
     
     public const char PathSeparator = '/';
     public const char PackageSeparator = ':';
 
+
+    public static readonly Dictionary<Guid, List<AssetReference>> ReferencesForAssetId = new(512);
     public static ICollection<Asset> AllAssets => _assetsByAddress.Values;
 
     private static readonly ConcurrentDictionary<string, Asset> _assetsByAddress = new(StringComparer.OrdinalIgnoreCase);
-    private static readonly ConcurrentDictionary<string, List<string>> _healerIndex = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly ConcurrentDictionary<string, List<Asset>> _assetsMatchingFilenames = new(StringComparer.OrdinalIgnoreCase);
 }

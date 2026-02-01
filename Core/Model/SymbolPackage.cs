@@ -125,15 +125,15 @@ public abstract partial class SymbolPackage : IResourcePackage
         if (initializeResources)
         {
             // ReSharper disable once VirtualMemberCallInConstructor
-            InitializeResources();
+            InitializeAssets();
         }
     }
 
-    protected virtual void InitializeResources()
+    protected virtual void InitializeAssets()
     {
         ResourcesFolder = Path.Combine(Folder, FileLocations.AssetsSubfolder);
 
-        // FIX: Force the assembly information to load the JSON metadata now
+        // Force the assembly information to load the JSON metadata now
         // This ensures Name and Id are valid before registration starts.
         _ = ReleaseInfo;
         
@@ -226,6 +226,7 @@ public abstract partial class SymbolPackage : IResourcePackage
         // update symbol instances 
         foreach (var symbol in updatedSymbols)
         {
+            Log.Debug("Update symbol instances");
             UpdateSymbolInstances(symbol);
             SymbolUpdated?.Invoke(symbol);
         }

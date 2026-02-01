@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿#nullable enable
+using System.IO;
 using System.Text;
 using T3.Core.Model;
 using T3.Core.Operator;
@@ -117,7 +118,7 @@ internal static class ConformAssetPaths
     internal static void ConformAllPaths()
     {
         //BuildAssetIndex();
-        Log.Debug("Conforming Asset paths...");
+        Log.Debug("Updating asset references...");
 
         foreach (var package in SymbolPackage.AllPackages)
         {
@@ -171,7 +172,7 @@ internal static class ConformAssetPaths
     }
 
     private static void ProcessStringInputUi(IInputUi inputUi, InputValue<string> stringValue, Symbol symbol,
-                                             Symbol.Child symbolChild = null)
+                                             Symbol.Child? symbolChild = null)
     {
         if (inputUi is not StringInputUi stringUi)
             return;
@@ -186,12 +187,28 @@ internal static class ConformAssetPaths
                     symbol.GetSymbolUi().FlagAsModified();
                 }
 
-                if (TryConvertResourcePathFuzzy(stringValue.Value, symbol, out var converted))
+                if (TryConvertResourcePathFuzzy(stringValue.Value, symbol, out var converted, out var asset))
                 {
                     Log.Debug($"Migrated asset reference for {symbol}.{inputUi.InputDefinition.Name}: {stringValue.Value} -> {converted}");
                     stringValue.Value = converted;
                 }
 
+                if (asset != null)
+                {
+                    if (!AssetRegistry.ReferencesForAssetId.TryGetValue(asset.Id, out var list))
+                    {
+                        list = [];
+                        AssetRegistry.ReferencesForAssetId[asset.Id] = list;
+                    }
+                    
+                    list.Add(new AssetReference
+                                 {
+                                     Asset = asset,
+                                     SymbolId = symbol.Id,
+                                     SymbolChildId = symbolChild?.Id ?? Guid.Empty,
+                                     InputId = stringUi.Id
+                                 });
+                }
                 break;
             }
             case StringInputUi.UsageType.DirectoryPath:
@@ -271,16 +288,18 @@ internal static class ConformAssetPaths
         return true;
     }
 
-    private static bool TryConvertResourcePathFuzzy(string path, Symbol symbol, out string newPath)
+    private static bool TryConvertResourcePathFuzzy(string path, Symbol symbol, out string newPath, out Asset? asset)
     {
         newPath = path;
+        asset = null;
+        
         if (string.IsNullOrWhiteSpace(path) || IsAbsoluteFilePath(path))
             return false;
 
         var separatorCount = path.Count(c => c == AssetRegistry.PackageSeparator);
 
         // If it's a valid address already, leave it be.
-        if (separatorCount == 1 && AssetRegistry.TryGetAsset(path, out _))
+        if (separatorCount == 1 && AssetRegistry.TryGetAsset(path, out asset))
             return false;
 
         // Ignore URLs
@@ -307,7 +326,7 @@ internal static class ConformAssetPaths
             fileName = Path.GetFileName(path);
         }
 
-        if (TryHeal(fileName, path, symbol, out var healedAddress))
+        if (TryFixAddressForFilename(fileName, path, symbol, out var healedAddress))
         {
             newPath = healedAddress;
             return true;
@@ -331,24 +350,25 @@ internal static class ConformAssetPaths
         return !string.Equals(newPath, path, StringComparison.Ordinal);
     }
 
-    private static bool TryHeal(string fileName, string originalAddress, Symbol symbol, out string matchedAddress)
+    private static bool TryFixAddressForFilename(string fileName, string originalAddress, Symbol symbol, out string matchedAddress)
     {
         matchedAddress = string.Empty;
-        if (!AssetRegistry.TryGetHealerMatches(fileName, out var candidates))
+        if (!AssetRegistry.TryGetAssetsForFilename(fileName, out var candidates))
         {
             return false;
         }
 
         if (candidates.Count == 1)
         {
-            matchedAddress = candidates[0];
+            matchedAddress = candidates[0].Address;
             return true;
         }
 
         // Multiple matches found: Use scoring
         matchedAddress = candidates
-                        .OrderBy(candidate => CalculateMatchScore(originalAddress, candidate, symbol.SymbolPackage.Name))
-                        .First();
+                        .OrderBy(candidate => CalculateMatchScore(originalAddress, candidate.Address, symbol.SymbolPackage.Name))
+                        .First()
+                        .Address;
         return true;
     }
     
