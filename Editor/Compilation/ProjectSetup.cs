@@ -118,7 +118,7 @@ internal static partial class ProjectSetup
 
     public static void UpdateSymbolPackages(params EditorSymbolPackage[] packages)
     {
-        const bool parallel = true;
+        var parallel = UserSettings.Config.LoadMultiThreaded;
         
         var stopWatch = Stopwatch.StartNew();
         // Actually update the symbol packages
@@ -163,7 +163,7 @@ internal static partial class ProjectSetup
                .AsParallel()
                .ForAll(package => //pull out for non-editable ones too
                        {
-                           package.LoadSymbols(false, out var newlyRead, out var allNewSymbols);
+                           package.LoadSymbols(parallel, out var newlyRead, out var allNewSymbols);
                            loadedSymbols.TryAdd(package, newlyRead);
                            loadedOrCreatedSymbols.TryAdd(package, allNewSymbols);
                        });
@@ -173,7 +173,7 @@ internal static partial class ProjectSetup
             for (var index = packages.Length - 1; index >= 0; index--)
             {
                 var package = packages[index];
-                package.LoadSymbols(false, out var newlyRead, out var allNewSymbols);
+                package.LoadSymbols(parallel, out var newlyRead, out var allNewSymbols);
                 loadedSymbols.TryAdd(package, newlyRead);
                 loadedOrCreatedSymbols.TryAdd(package, allNewSymbols);
             }
