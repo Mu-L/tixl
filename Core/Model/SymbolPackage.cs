@@ -228,7 +228,6 @@ public abstract partial class SymbolPackage : IResourcePackage
         // update symbol instances 
         foreach (var symbol in updatedSymbols)
         {
-            Log.Debug("Update symbol instances");
             UpdateSymbolInstances(symbol);
             SymbolUpdated?.Invoke(symbol);
         }
