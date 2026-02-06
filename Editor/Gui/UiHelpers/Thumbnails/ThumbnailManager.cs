@@ -51,13 +51,14 @@ internal static class ThumbnailManager
         }
     }
 
-    internal static void AsImguiImage(this ThumbnailRect thumbnail, float height = SlotHeight)
+    internal static bool AsImguiImage(this ThumbnailRect thumbnail, float height = SlotHeight)
     {
         if (!thumbnail.IsReady || AtlasSrv == null)
-            return;
+            return false;
 
         // Ensure 4:3 aspect ratio
         ImGui.Image(AtlasSrv.NativePointer, new Vector2(height * 4 / 3, height), thumbnail.Min, thumbnail.Max);
+        return true;
     }
     #endregion
 
